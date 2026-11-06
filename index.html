@@ -1,11 +1,11 @@
+
 <!DOCTYPE html>
 <html>
 <head>
 <base target="_top">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-const APPSCRIPT_URL =
-  'https://script.google.com/macros/s/AKfycbxPKKE6bdYC6CEGio04KjmRQ6G7TPjv272EpsFiJDYlVmpiv45U6cW4lRYEKLnLk0b3/exec';
+
 <title>NASHO HEALTH CENTER - Data Validation System</title>
 
 <style>
@@ -710,8 +710,6 @@ let currentUser = null;
 
 const $ = id => document.getElementById(id);
 
-
-
 /* LOGIN TABS */
 
 function switchLogin(type) {
@@ -739,13 +737,20 @@ function handleError(error) {
   showMessage(message, true);
 }
 
-/* VERCEL -> API PROXY -> GOOGLE APPS SCRIPT */
+/* GOOGLE APPS SCRIPT CONNECTION */
+
+const APPSCRIPT_URL =
+  'https://script.google.com/macros/s/AKfycbxPKKE6bdYC6CEGio04KjmRQ6G7TPjv272EpsFiJDYlVmpiv45U6cW4lRYEKLnLk0b3/exec';
+
+/* API CONNECTION */
+
 async function api(functionName, args = [], callback) {
   try {
-    const response = await fetch('/api/nasho', {
+    const response = await fetch(APPSCRIPT_URL, {
       method: 'POST',
+      redirect: 'follow',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'text/plain;charset=utf-8'
       },
       body: JSON.stringify({
         action: functionName,
@@ -754,10 +759,13 @@ async function api(functionName, args = [], callback) {
     });
 
     let result;
+
     try {
       result = await response.json();
     } catch (_) {
-      throw new Error('The server returned an invalid response. Check the Vercel API deployment.');
+      throw new Error(
+        'Google Apps Script returned an invalid response. Check your deployment and doPost(e).'
+      );
     }
 
     if (!response.ok || !result || result.success !== true) {
@@ -835,7 +843,6 @@ function adminLogin() {
     }
   );
 
-  // Re-enable the button if the request fails.
   window.setTimeout(() => {
     if (button && document.body.classList.contains('login-active')) {
       button.disabled = false;
