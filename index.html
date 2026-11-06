@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -6,119 +5,360 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
+<title>NASHO HEALTH CENTER - Data Validation System</title>
+
 <style>
-:root{
-  --navy:#063b66;
-  --blue:#0876a8;
-  --teal:#0d9488;
-  --bg:#f3f7fa;
-  --line:#d9e3eb;
-}
-*{box-sizing:border-box}
-body{
-  margin:0;
-  background:var(--bg);
-  font-family:Arial,sans-serif;
-  color:#193247;
-}
-header{
-  background:linear-gradient(110deg,var(--navy),var(--blue));
-  color:white;
-  padding:18px 22px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  flex-wrap:wrap;
-  gap:10px;
-}
-header h1{font-size:19px;margin:0}
-.wrap{max-width:1200px;margin:22px auto;padding:0 14px}
-.card{
-  background:white;
-  border:1px solid var(--line);
-  border-radius:12px;
-  padding:18px;
-  margin-bottom:16px;
-}
-h2{font-size:18px;color:var(--navy);margin-top:0}
-h3{font-size:15px;color:var(--navy)}
-label{display:block;font-weight:bold;margin:9px 0 5px}
-input,select,textarea{
-  width:100%;
-  padding:10px;
-  border:1px solid #c7d4df;
-  border-radius:7px;
-  font:inherit;
-  background:white;
-}
-textarea{min-height:65px}
-button{
-  background:var(--blue);
-  color:white;
-  border:0;
-  border-radius:7px;
-  padding:10px 14px;
-  margin:5px 4px 5px 0;
-  cursor:pointer;
-  font-weight:bold;
-}
-.secondary{background:#e7eef4;color:var(--navy)}
-.danger{background:#b42318}
-.row{
-  display:grid;
-  grid-template-columns:repeat(3,minmax(0,1fr));
-  gap:12px;
-}
-.two{grid-template-columns:repeat(2,minmax(0,1fr))}
-
-/* Login layout: Representative on the left, Administrator on the right */
-.login-layout{
-  display:grid;
-  grid-template-columns:repeat(2,minmax(0,1fr));
-  gap:18px;
-  align-items:start;
-}
-.login-layout > .card{
-  margin-bottom:0;
+:root {
+  --navy: #063b66;
+  --blue: #0876a8;
+  --teal: #0d9488;
+  --bg: #f3f7fa;
+  --line: #d9e3eb;
+  --text: #193247;
 }
 
-.hidden{display:none!important}
-.status{
-  padding:10px;
-  border-radius:7px;
-  background:#e8f5f3;
-  color:#075e57;
-  margin-bottom:12px;
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  font-family: Arial, sans-serif;
+  color: var(--text);
 }
-.error{background:#fff0ef;color:#a1261c}
-.muted{color:#63788a}
-.tablewrap{overflow:auto}
-table{width:100%;border-collapse:collapse;min-width:700px}
-th,td{
-  border-bottom:1px solid var(--line);
-  padding:9px;
-  text-align:left;
+
+header {
+  background: linear-gradient(110deg,var(--navy),var(--blue));
+  color: white;
+  padding: 18px 22px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
 }
-th{background:#edf4f8;color:var(--navy)}
-.item{
-  border:1px solid var(--line);
-  border-radius:9px;
-  padding:12px;
-  margin:10px 0;
+
+header h1 { font-size: 19px; margin: 0; }
+
+.wrap {
+  max-width: 1200px;
+  margin: 22px auto;
+  padding: 0 14px;
 }
-.metric{font-size:26px;font-weight:bold;color:var(--blue)}
-.profile{display:flex;align-items:center;gap:10px}
-.avatar{
-  width:42px;height:42px;border-radius:50%;
-  object-fit:cover;background:#ddd;
+
+.card {
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 18px;
+  margin-bottom: 16px;
 }
-@media(max-width:700px){
-  .row,.two,.login-layout{grid-template-columns:1fr}
+
+h2 { font-size: 18px; color: var(--navy); margin-top: 0; }
+h3 { font-size: 15px; color: var(--navy); }
+
+label {
+  display: block;
+  font-weight: bold;
+  margin: 9px 0 5px;
+}
+
+input, select, textarea {
+  width: 100%;
+  padding: 11px;
+  border: 1px solid #c7d4df;
+  border-radius: 7px;
+  font: inherit;
+  background: white;
+}
+
+textarea { min-height: 65px; }
+
+button {
+  background: var(--blue);
+  color: white;
+  border: 0;
+  border-radius: 7px;
+  padding: 10px 14px;
+  margin: 5px 4px 5px 0;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+button:hover { opacity: .9; }
+
+.secondary { background: #e7eef4; color: var(--navy); }
+.danger { background: #b42318; }
+
+.row {
+  display: grid;
+  grid-template-columns: repeat(3,minmax(0,1fr));
+  gap: 12px;
+}
+
+.two { grid-template-columns: repeat(2,minmax(0,1fr)); }
+
+.hidden { display: none !important; }
+
+.status {
+  padding: 10px;
+  border-radius: 7px;
+  background: #e8f5f3;
+  color: #075e57;
+  margin-bottom: 12px;
+}
+
+.error { background: #fff0ef; color: #a1261c; }
+.muted { color: #63788a; }
+
+.tablewrap { overflow: auto; }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 700px;
+}
+
+th, td {
+  border-bottom: 1px solid var(--line);
+  padding: 9px;
+  text-align: left;
+}
+
+th { background: #edf4f8; color: var(--navy); }
+
+.item {
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  padding: 12px;
+  margin: 10px 0;
+}
+
+.metric {
+  font-size: 26px;
+  font-weight: bold;
+  color: var(--blue);
+}
+
+.profile { display: flex; align-items: center; gap: 10px; }
+
+.avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #ddd;
+}
+
+/* =========================
+   NEW LOGIN SCREEN
+========================= */
+
+body.login-active {
+  background: #f4f7fb;
+}
+
+body.login-active header {
+  display: none;
+}
+
+body.login-active .wrap {
+  max-width: none;
+  padding: 0;
+  margin: 0;
+}
+
+.login-layout {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 43% 57%;
+  background: white;
+}
+
+.login-brand {
+  background: linear-gradient(145deg,#063b66,#0876a8);
+  color: white;
+  padding: 65px 55px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.login-brand:before {
+  content: "";
+  position: absolute;
+  width: 350px;
+  height: 350px;
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 50%;
+  right: -150px;
+  bottom: -120px;
+}
+
+.brand-logo {
+  width: 75px;
+  height: 75px;
+  border-radius: 18px;
+  background: white;
+  color: var(--navy);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 27px;
+  font-weight: bold;
+  margin-bottom: 35px;
+}
+
+.login-brand h1 {
+  font-size: 30px;
+  line-height: 1.25;
+  margin: 0 0 12px;
+  color: white;
+}
+
+.login-brand h2 {
+  color: #d9efff;
+  font-size: 17px;
+  letter-spacing: 2px;
+  margin-bottom: 20px;
+}
+
+.login-brand p {
+  color: #e2edf5;
+  line-height: 1.7;
+  max-width: 420px;
+}
+
+.brand-footer {
+  margin-top: 65px;
+  font-size: 12px;
+  color: #d5e7f4;
+}
+
+.login-right {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 35px;
+}
+
+.login-box {
+  width: 100%;
+  max-width: 440px;
+}
+
+.login-heading {
+  margin-bottom: 25px;
+}
+
+.login-heading h2 {
+  font-size: 28px;
+  color: #123b5b;
+  margin-bottom: 8px;
+}
+
+.login-heading p {
+  color: #718096;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.login-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: #edf2f7;
+  padding: 5px;
+  border-radius: 9px;
+  margin-bottom: 25px;
+}
+
+.login-tab {
+  padding: 12px;
+  border: 0;
+  background: transparent;
+  color: #526579;
+  border-radius: 7px;
+  margin: 0;
+}
+
+.login-tab.active {
+  background: white;
+  color: var(--blue);
+  box-shadow: 0 2px 7px rgba(0,0,0,.08);
+}
+
+.login-form label {
+  font-size: 13px;
+  color: #34495e;
+  margin-top: 17px;
+}
+
+.login-form input {
+  padding: 13px;
+  border: 1px solid #d5dee8;
+  margin-top: 5px;
+}
+
+.login-form input:focus {
+  outline: none;
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(8,118,168,.10);
+}
+
+.login-submit {
+  width: 100%;
+  padding: 14px;
+  margin: 22px 0 0;
+  border-radius: 8px;
+  background: var(--blue);
+  font-size: 15px;
+}
+
+.login-note {
+  text-align: center;
+  color: #8493a3;
+  font-size: 12px;
+  margin-top: 25px;
+}
+
+.login-help {
+  color: #63788a;
+  font-size: 13px;
+  margin-top: 15px;
+  line-height: 1.5;
+}
+
+@media(max-width:800px) {
+  .login-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .login-brand {
+    padding: 35px 25px;
+    min-height: 280px;
+  }
+
+  .brand-logo {
+    width: 55px;
+    height: 55px;
+    margin-bottom: 18px;
+  }
+
+  .login-brand h1 { font-size: 23px; }
+
+  .brand-footer { margin-top: 25px; }
+
+  .login-right { padding: 35px 22px; }
+}
+
+@media(max-width:700px) {
+  .row, .two { grid-template-columns: 1fr; }
 }
 </style>
 </head>
 
-<body>
+<body class="login-active">
 
 <header>
   <div>
@@ -143,34 +383,103 @@ th{background:#edf4f8;color:var(--navy)}
 <!-- LOGIN -->
 <section id="login" class="login-layout">
 
-  <div class="card">
-    <h2>Representative Login</h2>
-    <p class="muted">
-      Enter your registered email or phone number.
-      A verification code will be sent to your registered email.
+  <div class="login-brand">
+    <div class="brand-logo">NH</div>
+
+    <h1>NASHO HEALTH CENTER</h1>
+    <h2>DATA VALIDATION SYSTEM</h2>
+
+    <p>
+      A centralized platform for health data validation,
+      quality assurance, internal evaluation and reporting.
     </p>
 
-    <label>Email or phone</label>
-    <input id="identifier">
+    <p>
+      Supporting accurate health information and
+      evidence-based decision making.
+    </p>
 
-    <button onclick="requestCode()">Send verification code</button>
-
-    <label>Verification code</label>
-    <input id="otp" placeholder="Enter code">
-
-    <button onclick="verifyCode()">Verify and Login</button>
+    <div class="brand-footer">
+      © NASHO HEALTH CENTER
+      <br>
+      Data Management & Quality Improvement
+    </div>
   </div>
 
-  <div class="card">
-    <h2>Administrator Login</h2>
+  <div class="login-right">
+    <div class="login-box">
 
-    <label>Username</label>
-    <input id="adminUsername">
+      <div class="login-heading">
+        <h2>Welcome back</h2>
+        <p>Sign in to access the Data Validation System.</p>
+      </div>
 
-    <label>Password</label>
-    <input id="adminPassword" type="password">
+      <div class="login-tabs">
+        <button id="staffTab" class="login-tab active"
+          onclick="switchLogin('staff')">
+          Staff Login
+        </button>
 
-    <button onclick="adminLogin()">Admin Login</button>
+        <button id="adminTab" class="login-tab"
+          onclick="switchLogin('admin')">
+          Admin Login
+        </button>
+      </div>
+
+      <!-- STAFF LOGIN -->
+      <div id="staffLoginForm" class="login-form">
+
+        <label>Email or phone number</label>
+        <input id="identifier"
+          placeholder="Enter registered email or phone">
+
+        <button class="login-submit" onclick="requestCode()">
+          Send verification code
+        </button>
+
+        <label>Verification code</label>
+        <input id="otp" placeholder="Enter verification code">
+
+        <button class="login-submit" onclick="verifyCode()">
+          Verify and Login
+        </button>
+
+        <p class="login-help">
+          A verification code will be sent to your registered email.
+          Use the email or phone number registered by the administrator.
+        </p>
+
+      </div>
+
+      <!-- ADMIN LOGIN -->
+      <div id="adminLoginForm" class="login-form hidden">
+
+        <label>Administrator username</label>
+        <input id="adminUsername"
+          placeholder="Enter administrator username"
+          autocomplete="username">
+
+        <label>Password</label>
+        <input id="adminPassword"
+          type="password"
+          placeholder="Enter password"
+          autocomplete="current-password">
+
+        <button class="login-submit" onclick="adminLogin()">
+          Login as Administrator
+        </button>
+
+        <p class="login-help">
+          Administrator access is restricted to authorized accounts.
+        </p>
+
+      </div>
+
+      <div class="login-note">
+        Secure access · NASHO HEALTH CENTER
+      </div>
+
+    </div>
   </div>
 
 </section>
@@ -308,7 +617,6 @@ th{background:#edf4f8;color:var(--navy)}
       </div>
 
       <h3>DATA ELEMENTS VALIDATED</h3>
-
       <div id="dataRows"></div>
 
       <button class="secondary" onclick="addDataRow()">
@@ -316,7 +624,6 @@ th{background:#edf4f8;color:var(--navy)}
       </button>
 
       <h3>TOOLS ASSESSED</h3>
-
       <div id="toolRows"></div>
 
       <button class="secondary" onclick="addToolRow()">
@@ -401,7 +708,24 @@ let token = '';
 let currentUser = null;
 
 const $ = id => document.getElementById(id);
-const APPSCRIPT = "https://script.google.com/macros/s/AKfycbxPKKE6bdYC6CEGio04KjmRQ6G7TPjv272EpsFiJDYlVmpiv45U6cW4lRYEKLnLk0b3/exec";
+
+const APPSCRIPT =
+"https://script.google.com/macros/s/AKfycbxPKKE6bdYC6CEGio04KjmRQ6G7TPjv272EpsFiJDYlVmpiv45U6cW4lRYEKLnLk0b3/exec";
+
+/* LOGIN TABS */
+
+function switchLogin(type) {
+  const staff = type === 'staff';
+
+  $('staffLoginForm').classList.toggle('hidden', !staff);
+  $('adminLoginForm').classList.toggle('hidden', staff);
+
+  $('staffTab').classList.toggle('active', staff);
+  $('adminTab').classList.toggle('active', !staff);
+
+  $('message').classList.add('hidden');
+}
+
 function showMessage(text, error=false) {
   $('message').textContent = text;
   $('message').className = 'status' + (error ? ' error' : '');
@@ -421,28 +745,58 @@ function api(functionName, args, callback) {
 /* LOGIN */
 
 function requestCode() {
-  api('requestLoginCode', [$('identifier').value], showMessage);
+  const identifier = $('identifier').value.trim();
+
+  if (!identifier) {
+    showMessage('Enter your registered email or phone number.', true);
+    return;
+  }
+
+  api('requestLoginCode', [identifier], showMessage);
 }
 
 function verifyCode() {
+  const identifier = $('identifier').value.trim();
+  const otp = $('otp').value.trim();
+
+  if (!identifier || !otp) {
+    showMessage('Enter your registered details and verification code.', true);
+    return;
+  }
+
   api(
     'verifyLoginCode',
-    [$('identifier').value, $('otp').value],
+    [identifier, otp],
     enterApplication
   );
 }
 
 function adminLogin() {
+  const username = $('adminUsername').value.trim();
+  const password = $('adminPassword').value;
+
+  if (!username || !password) {
+    showMessage('Enter administrator username and password.', true);
+    return;
+  }
+
   api(
     'adminLogin',
-    [$('adminUsername').value, $('adminPassword').value],
+    [username, password],
     enterApplication
   );
 }
 
 function enterApplication(session) {
+  if (!session || !session.token || !session.user) {
+    showMessage('Invalid login response. Contact the administrator.', true);
+    return;
+  }
+
   token = session.token;
   currentUser = session.user;
+
+  document.body.classList.remove('login-active');
 
   $('login').classList.add('hidden');
   $('application').classList.remove('hidden');
@@ -484,9 +838,9 @@ function refreshHistory() {
     $('historyTable').innerHTML = evaluations.map(e => `
       <tr>
         <td>${e.evaluationDate}</td>
-        <td>${e.service}</td>
-        <td>${e.representativeName}</td>
-        <td>${e.status}</td>
+        <td>${escapeValue(e.service)}</td>
+        <td>${escapeValue(e.representativeName)}</td>
+        <td>${escapeValue(e.status)}</td>
         <td>
           Chief: ${e.chiefSigned ? 'Yes' : 'No'}<br>
           Auditor: ${e.auditorSigned ? 'Yes' : 'No'}
@@ -789,10 +1143,10 @@ function showAudit(id) {
 
     $('auditContent').innerHTML = records.map(record => `
       <p>
-        <b>${record.Action}</b><br>
-        ${record.ActorName}<br>
+        <b>${escapeValue(record.Action)}</b><br>
+        ${escapeValue(record.ActorName)}<br>
         ${new Date(record.Timestamp).toLocaleString()}<br>
-        ${record.Details}
+        ${escapeValue(record.Details)}
       </p>
       <hr>
     `).join('') || 'No activity recorded.';
