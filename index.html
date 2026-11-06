@@ -389,7 +389,7 @@ let token = '';
 let currentUser = null;
 
 const $ = id => document.getElementById(id);
-
+const APPSCRIPT = "https://script.google.com/macros/s/AKfycbxPKKE6bdYC6CEGio04KjmRQ6G7TPjv272EpsFiJDYlVmpiv45U6cW4lRYEKLnLk0b3/exec";
 function showMessage(text, error=false) {
   $('message').textContent = text;
   $('message').className = 'status' + (error ? ' error' : '');
