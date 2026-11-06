@@ -70,6 +70,18 @@ button{
   gap:12px;
 }
 .two{grid-template-columns:repeat(2,minmax(0,1fr))}
+
+/* Login layout: Representative on the left, Administrator on the right */
+.login-layout{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:18px;
+  align-items:start;
+}
+.login-layout > .card{
+  margin-bottom:0;
+}
+
 .hidden{display:none!important}
 .status{
   padding:10px;
@@ -101,7 +113,7 @@ th{background:#edf4f8;color:var(--navy)}
   object-fit:cover;background:#ddd;
 }
 @media(max-width:700px){
-  .row,.two{grid-template-columns:1fr}
+  .row,.two,.login-layout{grid-template-columns:1fr}
 }
 </style>
 </head>
@@ -129,7 +141,7 @@ th{background:#edf4f8;color:var(--navy)}
 <div id="message" class="hidden"></div>
 
 <!-- LOGIN -->
-<section id="login">
+<section id="login" class="login-layout">
 
   <div class="card">
     <h2>Representative Login</h2>
