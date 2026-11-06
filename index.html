@@ -1,0 +1,874 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<base target="_top">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+:root{
+  --navy:#063b66;
+  --blue:#0876a8;
+  --teal:#0d9488;
+  --bg:#f3f7fa;
+  --line:#d9e3eb;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:var(--bg);
+  font-family:Arial,sans-serif;
+  color:#193247;
+}
+header{
+  background:linear-gradient(110deg,var(--navy),var(--blue));
+  color:white;
+  padding:18px 22px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:10px;
+}
+header h1{font-size:19px;margin:0}
+.wrap{max-width:1200px;margin:22px auto;padding:0 14px}
+.card{
+  background:white;
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:18px;
+  margin-bottom:16px;
+}
+h2{font-size:18px;color:var(--navy);margin-top:0}
+h3{font-size:15px;color:var(--navy)}
+label{display:block;font-weight:bold;margin:9px 0 5px}
+input,select,textarea{
+  width:100%;
+  padding:10px;
+  border:1px solid #c7d4df;
+  border-radius:7px;
+  font:inherit;
+  background:white;
+}
+textarea{min-height:65px}
+button{
+  background:var(--blue);
+  color:white;
+  border:0;
+  border-radius:7px;
+  padding:10px 14px;
+  margin:5px 4px 5px 0;
+  cursor:pointer;
+  font-weight:bold;
+}
+.secondary{background:#e7eef4;color:var(--navy)}
+.danger{background:#b42318}
+.row{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:12px;
+}
+.two{grid-template-columns:repeat(2,minmax(0,1fr))}
+.hidden{display:none!important}
+.status{
+  padding:10px;
+  border-radius:7px;
+  background:#e8f5f3;
+  color:#075e57;
+  margin-bottom:12px;
+}
+.error{background:#fff0ef;color:#a1261c}
+.muted{color:#63788a}
+.tablewrap{overflow:auto}
+table{width:100%;border-collapse:collapse;min-width:700px}
+th,td{
+  border-bottom:1px solid var(--line);
+  padding:9px;
+  text-align:left;
+}
+th{background:#edf4f8;color:var(--navy)}
+.item{
+  border:1px solid var(--line);
+  border-radius:9px;
+  padding:12px;
+  margin:10px 0;
+}
+.metric{font-size:26px;font-weight:bold;color:var(--blue)}
+.profile{display:flex;align-items:center;gap:10px}
+.avatar{
+  width:42px;height:42px;border-radius:50%;
+  object-fit:cover;background:#ddd;
+}
+@media(max-width:700px){
+  .row,.two{grid-template-columns:1fr}
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div>
+    <h1>NASHO HEALTH CENTER</h1>
+    <small>DATA VALIDATION SYSTEM</small>
+  </div>
+
+  <div id="profile" class="profile hidden">
+    <img id="avatar" class="avatar">
+    <div>
+      <b id="who"></b>
+      <div id="role"></div>
+    </div>
+    <button class="secondary" onclick="logout()">Logout</button>
+  </div>
+</header>
+
+<div class="wrap">
+
+<div id="message" class="hidden"></div>
+
+<!-- LOGIN -->
+<section id="login">
+
+  <div class="card">
+    <h2>Representative Login</h2>
+    <p class="muted">
+      Enter your registered email or phone number.
+      A verification code will be sent to your registered email.
+    </p>
+
+    <label>Email or phone</label>
+    <input id="identifier">
+
+    <button onclick="requestCode()">Send verification code</button>
+
+    <label>Verification code</label>
+    <input id="otp" placeholder="Enter code">
+
+    <button onclick="verifyCode()">Verify and Login</button>
+  </div>
+
+  <div class="card">
+    <h2>Administrator Login</h2>
+
+    <label>Username</label>
+    <input id="adminUsername">
+
+    <label>Password</label>
+    <input id="adminPassword" type="password">
+
+    <button onclick="adminLogin()">Admin Login</button>
+  </div>
+
+</section>
+
+<!-- APPLICATION -->
+<section id="application" class="hidden">
+
+  <!-- ADMIN DASHBOARD -->
+  <div id="adminPanel" class="card hidden">
+
+    <h2>Administrator Dashboard</h2>
+
+    <div class="row">
+      <div>
+        <div class="metric" id="totalUsers">0</div>
+        Active users
+      </div>
+
+      <div>
+        <div class="metric" id="totalEvaluations">0</div>
+        Evaluations
+      </div>
+
+      <div>
+        <div class="metric" id="pendingEvaluations">0</div>
+        Pending evaluations
+      </div>
+    </div>
+
+    <hr>
+
+    <h3>Create or Assign User</h3>
+
+    <input id="userId" type="hidden">
+
+    <div class="row">
+
+      <div>
+        <label>Full name</label>
+        <input id="fullName">
+      </div>
+
+      <div>
+        <label>Role</label>
+        <select id="userRole">
+          <option>Representative</option>
+          <option>Viewer</option>
+          <option>Admin</option>
+        </select>
+      </div>
+
+      <div>
+        <label>Service</label>
+        <input id="userService" placeholder="e.g. Maternity">
+      </div>
+
+      <div>
+        <label>Health center</label>
+        <input id="userHC" value="NASHO HEALTH CENTER">
+      </div>
+
+      <div>
+        <label>Email</label>
+        <input id="userEmail" type="email">
+      </div>
+
+      <div>
+        <label>Phone</label>
+        <input id="userPhone">
+      </div>
+
+      <div>
+        <label>Profile photo URL</label>
+        <input id="userPhoto">
+      </div>
+
+    </div>
+
+    <button onclick="saveUser()">Save User</button>
+    <button class="secondary" onclick="clearUser()">Clear</button>
+
+    <h3>Registered Users</h3>
+
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Role</th>
+            <th>Service</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="usersTable"></tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <!-- EVALUATIONS -->
+  <div class="card">
+
+    <h2>Evaluation Workspace</h2>
+
+    <button onclick="newEvaluation()">+ New Evaluation</button>
+
+    <div id="evaluationForm" class="hidden">
+
+      <input id="evaluationId" type="hidden">
+
+      <div class="row">
+
+        <div>
+          <label>Service</label>
+          <input id="service">
+        </div>
+
+        <div>
+          <label>Health center</label>
+          <input id="healthCenter" value="NASHO HEALTH CENTER">
+        </div>
+
+        <div>
+          <label>Evaluation date</label>
+          <input id="evaluationDate" type="date">
+        </div>
+
+      </div>
+
+      <div id="representativeAssignment" class="hidden">
+        <label>Responsible representative</label>
+        <select id="representative"></select>
+      </div>
+
+      <h3>DATA ELEMENTS VALIDATED</h3>
+
+      <div id="dataRows"></div>
+
+      <button class="secondary" onclick="addDataRow()">
+        + Add Data Element
+      </button>
+
+      <h3>TOOLS ASSESSED</h3>
+
+      <div id="toolRows"></div>
+
+      <button class="secondary" onclick="addToolRow()">
+        + Add Tool
+      </button>
+
+      <div class="row two">
+
+        <div class="item">
+          <h3>Chief of Service</h3>
+
+          <label>Full name</label>
+          <input id="chiefName">
+
+          <label>Signature confirmation</label>
+          <input id="chiefSignature">
+
+          <button class="secondary" onclick="sign('chief')">
+            Send / Sign
+          </button>
+        </div>
+
+        <div class="item">
+          <h3>Auditor</h3>
+
+          <label>Full name</label>
+          <input id="auditorName">
+
+          <label>Signature confirmation</label>
+          <input id="auditorSignature">
+
+          <button class="secondary" onclick="sign('auditor')">
+            Send / Sign
+          </button>
+        </div>
+
+      </div>
+
+      <button onclick="saveEvaluation()">Save Draft</button>
+
+      <button onclick="submitEvaluation()">
+        Submit Internal Evaluation
+      </button>
+
+      <button class="secondary" onclick="closeEvaluation()">
+        Close
+      </button>
+
+    </div>
+
+    <h3>Evaluation History</h3>
+
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Service</th>
+            <th>Representative</th>
+            <th>Status</th>
+            <th>Signatures</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="historyTable"></tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <div id="auditPanel" class="card hidden">
+    <h2>Evaluation Activity History</h2>
+    <div id="auditContent"></div>
+  </div>
+
+</section>
+
+</div>
+
+<script>
+let token = '';
+let currentUser = null;
+
+const $ = id => document.getElementById(id);
+
+function showMessage(text, error=false) {
+  $('message').textContent = text;
+  $('message').className = 'status' + (error ? ' error' : '');
+  $('message').classList.remove('hidden');
+}
+
+function handleError(error) {
+  showMessage(error.message || String(error), true);
+}
+
+function api(functionName, args, callback) {
+  google.script.run
+    .withSuccessHandler(callback || function(){})
+    .withFailureHandler(handleError)[functionName](...args);
+}
+
+/* LOGIN */
+
+function requestCode() {
+  api('requestLoginCode', [$('identifier').value], showMessage);
+}
+
+function verifyCode() {
+  api(
+    'verifyLoginCode',
+    [$('identifier').value, $('otp').value],
+    enterApplication
+  );
+}
+
+function adminLogin() {
+  api(
+    'adminLogin',
+    [$('adminUsername').value, $('adminPassword').value],
+    enterApplication
+  );
+}
+
+function enterApplication(session) {
+  token = session.token;
+  currentUser = session.user;
+
+  $('login').classList.add('hidden');
+  $('application').classList.remove('hidden');
+  $('profile').classList.remove('hidden');
+
+  $('who').textContent = currentUser.fullName;
+  $('role').textContent =
+    currentUser.role + ' | ' + (currentUser.service || 'All Services');
+
+  $('avatar').src = currentUser.photoURL ||
+    'https://www.gravatar.com/avatar/?d=mp';
+
+  $('adminPanel').classList.toggle(
+    'hidden',
+    currentUser.role !== 'Admin'
+  );
+
+  $('representativeAssignment').classList.toggle(
+    'hidden',
+    currentUser.role !== 'Admin'
+  );
+
+  refreshHistory();
+
+  if (currentUser.role === 'Admin') {
+    loadAdmin();
+  }
+}
+
+function logout() {
+  api('logout', [token], () => location.reload());
+}
+
+/* HISTORY */
+
+function refreshHistory() {
+  api('listEvaluations', [token], evaluations => {
+
+    $('historyTable').innerHTML = evaluations.map(e => `
+      <tr>
+        <td>${e.evaluationDate}</td>
+        <td>${e.service}</td>
+        <td>${e.representativeName}</td>
+        <td>${e.status}</td>
+        <td>
+          Chief: ${e.chiefSigned ? 'Yes' : 'No'}<br>
+          Auditor: ${e.auditorSigned ? 'Yes' : 'No'}
+        </td>
+        <td>
+          <button class="secondary"
+            onclick="openEvaluation('${e.evaluationId}')">
+            Open
+          </button>
+
+          <button class="secondary"
+            onclick="showAudit('${e.evaluationId}')">
+            History
+          </button>
+
+          ${e.pdfUrl
+            ? `<a target="_blank" href="${e.pdfUrl}">PDF</a>`
+            : ''}
+        </td>
+      </tr>
+    `).join('');
+
+  });
+}
+
+/* FORM */
+
+function newEvaluation() {
+  $('evaluationForm').classList.remove('hidden');
+
+  $('evaluationId').value = '';
+  $('service').value = currentUser.service || '';
+  $('healthCenter').value =
+    currentUser.healthCenter || 'NASHO HEALTH CENTER';
+
+  $('evaluationDate').value =
+    new Date().toISOString().slice(0,10);
+
+  $('dataRows').innerHTML = '';
+  $('toolRows').innerHTML = '';
+
+  addDataRow();
+  addToolRow();
+
+  [
+    'chiefName',
+    'chiefSignature',
+    'auditorName',
+    'auditorSignature'
+  ].forEach(id => $(id).value = '');
+}
+
+function closeEvaluation() {
+  $('evaluationForm').classList.add('hidden');
+}
+
+function escapeValue(value) {
+  return String(value ?? '').replace(/[&<>"']/g, c => ({
+    '&':'&amp;',
+    '<':'&lt;',
+    '>':'&gt;',
+    '"':'&quot;',
+    "'":'&#39;'
+  })[c]);
+}
+
+/* DATA ELEMENT ROWS */
+
+function addDataRow(x={}) {
+  const div = document.createElement('div');
+  div.className = 'item';
+
+  div.innerHTML = `
+    <div class="row">
+
+      <div>
+        <label>Data Element</label>
+        <input class="dataElement" value="${escapeValue(x.DataElement || '')}">
+      </div>
+
+      <div>
+        <label>Reported Value</label>
+        <input class="reportedValue" value="${escapeValue(x.ReportedValue || '')}">
+      </div>
+
+      <div>
+        <label>Verified Value</label>
+        <input class="verifiedValue" value="${escapeValue(x.VerifiedValue || '')}">
+      </div>
+
+      <div>
+        <label>% of discrepancy</label>
+        <input class="discrepancy" value="${escapeValue(x.DiscrepancyPercent || '')}">
+      </div>
+
+      <div>
+        <label>Identified Gaps</label>
+        <textarea class="gaps">${escapeValue(x.IdentifiedGaps || '')}</textarea>
+      </div>
+
+      <div>
+        <label>Action Taken</label>
+        <textarea class="action">${escapeValue(x.ActionTaken || '')}</textarea>
+      </div>
+
+    </div>
+
+    <button class="danger" onclick="this.parentElement.remove()">
+      Remove Row
+    </button>
+  `;
+
+  $('dataRows').appendChild(div);
+}
+
+/* TOOLS */
+
+function addToolRow(x={}) {
+  const div = document.createElement('div');
+  div.className = 'item';
+
+  div.innerHTML = `
+    <div class="row">
+
+      <div>
+        <label>Tools Assessed</label>
+        <input class="toolName" value="${escapeValue(x.ToolName || '')}">
+      </div>
+
+      <div>
+        <label>Expected Number</label>
+        <input class="expected" value="${escapeValue(x.ExpectedNumber || '')}">
+      </div>
+
+      <div>
+        <label>Available Number</label>
+        <input class="available" value="${escapeValue(x.AvailableNumber || '')}">
+      </div>
+
+      <div>
+        <label>% of discrepancies</label>
+        <input class="toolDiscrepancy" value="${escapeValue(x.DiscrepancyPercent || '')}">
+      </div>
+
+      <div>
+        <label>All required fields complete?</label>
+        <select class="complete">
+          <option value="">Select</option>
+          <option ${x.AllFieldsComplete === 'Yes' ? 'selected' : ''}>Yes</option>
+          <option ${x.AllFieldsComplete === 'No' ? 'selected' : ''}>No</option>
+        </select>
+      </div>
+
+      <div>
+        <label>Action Taken</label>
+        <textarea class="toolAction">${escapeValue(x.ActionTaken || '')}</textarea>
+      </div>
+
+    </div>
+
+    <button class="danger" onclick="this.parentElement.remove()">
+      Remove Row
+    </button>
+  `;
+
+  $('toolRows').appendChild(div);
+}
+
+/* COLLECT FORM DATA */
+
+function collectRows(container, mapping) {
+  return [...document.querySelectorAll('#' + container + ' .item')]
+    .map(row => {
+      const result = {};
+
+      Object.keys(mapping).forEach(key => {
+        result[key] =
+          row.querySelector('.' + mapping[key]).value;
+      });
+
+      return result;
+    });
+}
+
+function getFormData() {
+  return {
+    evaluationId: $('evaluationId').value,
+    service: $('service').value,
+    healthCenter: $('healthCenter').value,
+    evaluationDate: $('evaluationDate').value,
+    representativeId: $('representative').value,
+
+    items: collectRows('dataRows', {
+      dataElement: 'dataElement',
+      reportedValue: 'reportedValue',
+      verifiedValue: 'verifiedValue',
+      discrepancyPercent: 'discrepancy',
+      identifiedGaps: 'gaps',
+      actionTaken: 'action'
+    }),
+
+    tools: collectRows('toolRows', {
+      toolName: 'toolName',
+      expectedNumber: 'expected',
+      availableNumber: 'available',
+      discrepancyPercent: 'toolDiscrepancy',
+      allFieldsComplete: 'complete',
+      actionTaken: 'toolAction'
+    })
+  };
+}
+
+/* SAVE */
+
+function saveEvaluation() {
+  api('saveEvaluation', [token, getFormData()], id => {
+    $('evaluationId').value = id;
+    showMessage('Evaluation saved successfully.');
+    refreshHistory();
+  });
+}
+
+/* OPEN EXISTING EVALUATION */
+
+function openEvaluation(id) {
+  api('getEvaluation', [token, id], result => {
+
+    const e = result.evaluation;
+
+    $('evaluationId').value = id;
+    $('service').value = e.service;
+    $('healthCenter').value = e.healthCenter;
+    $('evaluationDate').value =
+      String(e.evaluationDate).slice(0,10);
+
+    $('chiefName').value = e.chiefName || '';
+    $('chiefSignature').value = e.chiefSignature || '';
+    $('auditorName').value = e.auditorName || '';
+    $('auditorSignature').value = e.auditorSignature || '';
+
+    $('dataRows').innerHTML = '';
+    $('toolRows').innerHTML = '';
+
+    result.items.forEach(addDataRow);
+    result.tools.forEach(addToolRow);
+
+    $('evaluationForm').classList.remove('hidden');
+  });
+}
+
+/* SIGNATURES */
+
+function sign(type) {
+  const id = $('evaluationId').value;
+
+  if (!id) {
+    showMessage('Save the evaluation before signing.', true);
+    return;
+  }
+
+  const name = $(type + 'Name').value;
+  const signature = $(type + 'Signature').value;
+
+  api(
+    'signEvaluation',
+    [token, id, type, name, signature],
+    () => {
+      showMessage(type + ' signature recorded.');
+      refreshHistory();
+    }
+  );
+}
+
+/* FINAL SUBMISSION */
+
+function submitEvaluation() {
+  const id = $('evaluationId').value;
+
+  if (!id) {
+    showMessage('Save the evaluation first.', true);
+    return;
+  }
+
+  if (!confirm(
+    'Submit this internal evaluation and email the PDF report?'
+  )) return;
+
+  api('submitInternalEvaluation', [token, id], result => {
+    showMessage('Evaluation submitted. PDF: ' + result.pdfUrl);
+    refreshHistory();
+  });
+}
+
+/* AUDIT HISTORY */
+
+function showAudit(id) {
+  api('getEvaluationHistory', [token, id], records => {
+
+    $('auditPanel').classList.remove('hidden');
+
+    $('auditContent').innerHTML = records.map(record => `
+      <p>
+        <b>${record.Action}</b><br>
+        ${record.ActorName}<br>
+        ${new Date(record.Timestamp).toLocaleString()}<br>
+        ${record.Details}
+      </p>
+      <hr>
+    `).join('') || 'No activity recorded.';
+  });
+}
+
+/* ADMIN */
+
+function loadAdmin() {
+  api('adminDashboard', [token], data => {
+    $('totalUsers').textContent = data.users;
+    $('totalEvaluations').textContent = data.evaluations;
+    $('pendingEvaluations').textContent = data.pending;
+  });
+
+  api('adminGetUsers', [token], users => {
+
+    $('usersTable').innerHTML = users.map(user => `
+      <tr>
+        <td>${escapeValue(user.fullName)}</td>
+        <td>${escapeValue(user.role)}</td>
+        <td>${escapeValue(user.service)}</td>
+        <td>${escapeValue(user.email)}</td>
+        <td>${escapeValue(user.phone)}</td>
+        <td>
+          <button class="secondary"
+            onclick='editUser(${JSON.stringify(user)})'>
+            Edit
+          </button>
+        </td>
+      </tr>
+    `).join('');
+
+    $('representative').innerHTML = users
+      .filter(user => user.role === 'Representative')
+      .map(user => `
+        <option value="${user.userId}">
+          ${escapeValue(user.fullName)} - ${escapeValue(user.service)}
+        </option>
+      `).join('');
+  });
+}
+
+function editUser(user) {
+  $('userId').value = user.userId;
+  $('fullName').value = user.fullName;
+  $('userRole').value = user.role;
+  $('userService').value = user.service;
+  $('userHC').value = user.healthCenter;
+  $('userEmail').value = user.email;
+  $('userPhone').value = user.phone;
+  $('userPhoto').value = user.photoURL;
+}
+
+function clearUser() {
+  [
+    'userId',
+    'fullName',
+    'userService',
+    'userEmail',
+    'userPhone',
+    'userPhoto'
+  ].forEach(id => $(id).value = '');
+
+  $('userRole').value = 'Representative';
+  $('userHC').value = 'NASHO HEALTH CENTER';
+}
+
+function saveUser() {
+  const data = {
+    userId: $('userId').value,
+    fullName: $('fullName').value,
+    role: $('userRole').value,
+    service: $('userService').value,
+    healthCenter: $('userHC').value,
+    email: $('userEmail').value,
+    phone: $('userPhone').value,
+    photoURL: $('userPhoto').value,
+    active: true
+  };
+
+  api('adminSaveUser', [token, data], () => {
+    showMessage('User saved successfully.');
+    clearUser();
+    loadAdmin();
+  });
+}
+</script>
+
+</body>
+</html>
