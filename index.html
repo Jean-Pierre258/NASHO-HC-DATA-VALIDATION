@@ -709,8 +709,7 @@ let currentUser = null;
 
 const $ = id => document.getElementById(id);
 
-const APPSCRIPT =
-"https://script.google.com/macros/s/AKfycbxPKKE6bdYC6CEGio04KjmRQ6G7TPjv272EpsFiJDYlVmpiv45U6cW4lRYEKLnLk0b3/exec";
+
 
 /* LOGIN TABS */
 
@@ -733,13 +732,50 @@ function showMessage(text, error=false) {
 }
 
 function handleError(error) {
-  showMessage(error.message || String(error), true);
+  const message = error && error.message
+    ? error.message
+    : String(error || 'An unexpected error occurred.');
+  showMessage(message, true);
 }
 
-function api(functionName, args, callback) {
-  google.script.run
-    .withSuccessHandler(callback || function(){})
-    .withFailureHandler(handleError)[functionName](...args);
+/* VERCEL -> API PROXY -> GOOGLE APPS SCRIPT */
+async function api(functionName, args = [], callback) {
+  try {
+    const response = await fetch('/api/nasho', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        action: functionName,
+        args: args
+      })
+    });
+
+    let result;
+    try {
+      result = await response.json();
+    } catch (_) {
+      throw new Error('The server returned an invalid response. Check the Vercel API deployment.');
+    }
+
+    if (!response.ok || !result || result.success !== true) {
+      throw new Error(
+        (result && result.error) ||
+        ('Request failed with HTTP ' + response.status)
+      );
+    }
+
+    if (typeof callback === 'function') {
+      callback(result.data);
+    }
+
+    return result.data;
+
+  } catch (error) {
+    handleError(error);
+    return null;
+  }
 }
 
 /* LOGIN */
@@ -780,11 +816,31 @@ function adminLogin() {
     return;
   }
 
+  const button = $('adminLoginForm').querySelector('button.login-submit');
+  if (button) {
+    button.disabled = true;
+    button.textContent = 'Signing in...';
+  }
+
   api(
     'adminLogin',
     [username, password],
-    enterApplication
+    session => {
+      if (button) {
+        button.disabled = false;
+        button.textContent = 'Login as Administrator';
+      }
+      enterApplication(session);
+    }
   );
+
+  // Re-enable the button if the request fails.
+  window.setTimeout(() => {
+    if (button && document.body.classList.contains('login-active')) {
+      button.disabled = false;
+      button.textContent = 'Login as Administrator';
+    }
+  }, 15000);
 }
 
 function enterApplication(session) {
