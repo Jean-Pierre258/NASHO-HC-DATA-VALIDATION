@@ -596,6 +596,7 @@ body.login-active .wrap {
     <div id="evaluationForm" class="hidden">
 
       <input id="evaluationId" type="hidden">
+      <input id="healthCenter" type="hidden" value="NASHO HEALTH CENTER">
 
       <div class="row">
         <div>
@@ -685,6 +686,12 @@ body.login-active .wrap {
 <script>
 let token = '';
 let currentUser = null;
+const AUTH_STORAGE_KEY = 'NASHO_HC_AUTH_SESSION_V1';
+const IDLE_LIMIT_MS = 10 * 60 * 1000;
+const HEARTBEAT_INTERVAL_MS = 2 * 60 * 1000;
+let idleTimer = null;
+let lastHeartbeatAt = 0;
+let restoringSession = false;
 
 const $ = id => document.getElementById(id);
 
@@ -747,10 +754,12 @@ async function api(functionName, args = [], callback) {
     }
 
     if (!response.ok || !result || result.success !== true) {
-      throw new Error(
-        (result && result.error) ||
-        ('Request failed with HTTP ' + response.status)
-      );
+      const errorMessage = (result && result.error) ||
+        ('Request failed with HTTP ' + response.status);
+      if (/session (expired|token is missing)/i.test(errorMessage) && token) {
+        forceLogout('Your session expired. Please log in again.');
+      }
+      throw new Error(errorMessage);
     }
 
     if (typeof callback === 'function') {
@@ -837,6 +846,16 @@ function enterApplication(session) {
 
   token = session.token;
   currentUser = session.user;
+  try {
+    localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify({
+      token: token,
+      user: currentUser
+    }));
+  } catch (storageError) {
+    console.warn('Could not persist the login session in this browser.', storageError);
+  }
+  startIdleProtection();
+  lastHeartbeatAt = Date.now();
 
   document.body.classList.remove('login-active');
 
@@ -868,9 +887,119 @@ function enterApplication(session) {
   }
 }
 
-function logout() {
-  api('logout', [token], () => location.reload());
+function clearStoredSession() {
+  try { localStorage.removeItem(AUTH_STORAGE_KEY); } catch (_) {}
 }
+
+function stopIdleProtection() {
+  if (idleTimer) window.clearTimeout(idleTimer);
+  idleTimer = null;
+}
+
+function forceLogout(message) {
+  const oldToken = token;
+  token = '';
+  currentUser = null;
+  stopIdleProtection();
+  clearStoredSession();
+
+  if (oldToken) {
+    // Best-effort server-side invalidation; never block the local lock screen.
+    api('logout', [oldToken]);
+  }
+
+  $('application').classList.add('hidden');
+  $('profile').classList.add('hidden');
+  $('login').classList.remove('hidden');
+  document.body.classList.add('login-active');
+
+  if (message) showMessage(message, true);
+}
+
+function resetIdleTimer() {
+  if (!token || !currentUser) return;
+  if (idleTimer) window.clearTimeout(idleTimer);
+  idleTimer = window.setTimeout(() => {
+    forceLogout('You were signed out after 10 minutes of inactivity. Please log in again.');
+  }, IDLE_LIMIT_MS);
+
+  // Refresh the server-side inactivity timestamp periodically while the user
+  // is actively using the page, not on every mouse movement.
+  const now = Date.now();
+  if (now - lastHeartbeatAt >= HEARTBEAT_INTERVAL_MS) {
+    lastHeartbeatAt = now;
+    api('touchSession', [token], result => {
+      if (!result || result.valid !== true) {
+        forceLogout('Your session expired. Please log in again.');
+      }
+    });
+  }
+}
+
+function startIdleProtection() {
+  stopIdleProtection();
+  resetIdleTimer();
+}
+
+function restoreSavedSession() {
+  if (restoringSession) return;
+  restoringSession = true;
+
+  let saved = null;
+  try {
+    saved = JSON.parse(localStorage.getItem(AUTH_STORAGE_KEY) || 'null');
+  } catch (_) {
+    clearStoredSession();
+  }
+
+  if (!saved || !saved.token) {
+    restoringSession = false;
+    return;
+  }
+
+  (async () => {
+    const result = await api('validateSession', [saved.token]);
+    if (result && result.valid && result.user) {
+      enterApplication({
+        token: saved.token,
+        user: result.user
+      });
+    } else {
+      clearStoredSession();
+      showMessage('Your session expired. Please log in again.', true);
+    }
+    restoringSession = false;
+  })();
+}
+
+function logout() {
+  const oldToken = token;
+  token = '';
+  currentUser = null;
+  stopIdleProtection();
+  clearStoredSession();
+  if (oldToken) {
+    api('logout', [oldToken], () => {
+      $('application').classList.add('hidden');
+      $('profile').classList.add('hidden');
+      $('login').classList.remove('hidden');
+      document.body.classList.add('login-active');
+      showMessage('You have signed out successfully.');
+    });
+  } else {
+    forceLogout('You have signed out successfully.');
+  }
+}
+
+// Any real user activity restarts the ten-minute inactivity countdown.
+['click', 'keydown', 'mousemove', 'scroll', 'touchstart', 'input'].forEach(eventName => {
+  document.addEventListener(eventName, () => {
+    if (token) resetIdleTimer();
+  }, { passive: true });
+});
+
+// Restore a valid session after refresh instead of returning to the login page.
+document.addEventListener('DOMContentLoaded', restoreSavedSession);
 
 /* HISTORY */
 
@@ -1163,7 +1292,7 @@ async function getFormData() {
     service: $('service').value,
     healthCenter: $('healthCenter').value,
     evaluationDate: $('evaluationDate').value,
-    representativeId: $('representative').value,
+    representativeId: $('representative') ? $('representative').value : '',
     responsibleSignatureData: responsibleSignatureData,
     verifiedBy: verifiedBy,
 
@@ -1209,7 +1338,7 @@ function setFormReadOnly(readOnly) {
   $('formActions').classList.toggle('hidden', readOnly);
   $('submittedNotice').classList.toggle('hidden', !readOnly);
   $('service').readOnly = readOnly;
-  $('healthCenter').readOnly = readOnly;
+  if ($('healthCenter')) $('healthCenter').readOnly = readOnly;
   $('evaluationDate').disabled = true;
   $('responsibleSignature').disabled = readOnly;
   document.querySelectorAll('#verifiedRows input, #verifiedRows button, #dataRows input, #dataRows textarea, #dataRows select, #toolRows input, #toolRows textarea, #toolRows select')
