@@ -631,43 +631,13 @@ body.login-active .wrap {
         + Add Tool
       </button>
 
-      <div class="row two">
-
-        <div class="item">
-          <h3>Chief of Service</h3>
-
-          <label>Full name</label>
-          <input id="chiefName">
-
-          <label>Signature confirmation</label>
-          <input id="chiefSignature">
-
-          <button class="secondary" onclick="sign('chief')">
-            Send / Sign
-          </button>
-        </div>
-
-        <div class="item">
-          <h3>Auditor</h3>
-
-          <label>Full name</label>
-          <input id="auditorName">
-
-          <label>Signature confirmation</label>
-          <input id="auditorSignature">
-
-          <button class="secondary" onclick="sign('auditor')">
-            Send / Sign
-          </button>
-        </div>
-
+      <div id="formActions">
+        <button onclick="saveEvaluation()">Save Draft</button>
+        <button onclick="submitEvaluation()">Submit Internal Evaluation</button>
       </div>
-
-      <button onclick="saveEvaluation()">Save Draft</button>
-
-      <button onclick="submitEvaluation()">
-        Submit Internal Evaluation
-      </button>
+      <p id="submittedNotice" class="status hidden">
+        This report has been submitted and is locked. It can only be viewed or printed.
+      </p>
 
       <button class="secondary" onclick="closeEvaluation()">
         Close
@@ -685,7 +655,6 @@ body.login-active .wrap {
             <th>Service</th>
             <th>Representative</th>
             <th>Status</th>
-            <th>Signatures</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -906,23 +875,12 @@ function refreshHistory() {
         <td>${escapeValue(e.representativeName)}</td>
         <td>${escapeValue(e.status)}</td>
         <td>
-          Chief: ${e.chiefSigned ? 'Yes' : 'No'}<br>
-          Auditor: ${e.auditorSigned ? 'Yes' : 'No'}
-        </td>
-        <td>
-          <button class="secondary"
-            onclick="openEvaluation('${e.evaluationId}')">
-            Open
-          </button>
+          ${e.status === 'Submitted' || e.status === 'Completed'
+            ? `<button class="secondary" onclick="viewReport('${e.evaluationId}')">View Report</button>
+               ${e.pdfFileId ? `<a target="_blank" href="https://drive.google.com/uc?export=download&id=${encodeURIComponent(e.pdfFileId)}">Download PDF</a>` : ''}`
+            : `<button class="secondary" onclick="openEvaluation('${e.evaluationId}')">Edit Draft</button>`}
 
-          <button class="secondary"
-            onclick="showAudit('${e.evaluationId}')">
-            History
-          </button>
-
-          ${e.pdfUrl
-            ? `<a target="_blank" href="${e.pdfUrl}">PDF</a>`
-            : ''}
+          <button class="secondary" onclick="showAudit('${e.evaluationId}')">History</button>
         </td>
       </tr>
     `).join('');
@@ -934,6 +892,7 @@ function refreshHistory() {
 
 function newEvaluation() {
   $('evaluationForm').classList.remove('hidden');
+  setFormReadOnly(false);
 
   $('evaluationId').value = '';
   $('service').value = currentUser.service || '';
@@ -949,12 +908,7 @@ function newEvaluation() {
   addDataRow();
   addToolRow();
 
-  [
-    'chiefName',
-    'chiefSignature',
-    'auditorName',
-    'auditorSignature'
-  ].forEach(id => $(id).value = '');
+  setFormReadOnly(false);
 }
 
 function closeEvaluation() {
@@ -997,12 +951,12 @@ function addDataRow(x={}) {
 
       <div>
         <label>% of discrepancy</label>
-        <input class="discrepancy" value="${escapeValue(x.DiscrepancyPercent || '')}">
+        <input class="discrepancy" value="${escapeValue(x.DiscrepancyPercent || '')}" readonly>
       </div>
 
       <div>
         <label>Identified Gaps</label>
-        <textarea class="gaps">${escapeValue(x.IdentifiedGaps || '')}</textarea>
+        <input class="gaps" value="${escapeValue(x.IdentifiedGaps || '')}" readonly>
       </div>
 
       <div>
@@ -1018,6 +972,22 @@ function addDataRow(x={}) {
   `;
 
   $('dataRows').appendChild(div);
+  div.querySelectorAll('.reportedValue, .verifiedValue').forEach(input =>
+    input.addEventListener('input', () => recalculateDataRow(div))
+  );
+  recalculateDataRow(div);
+}
+
+function recalculateDataRow(row) {
+  const rText = row.querySelector('.reportedValue').value.trim();
+  const vText = row.querySelector('.verifiedValue').value.trim();
+  const r = Number(rText), v = Number(vText);
+  row.querySelector('.discrepancy').value =
+    rText !== '' && vText !== '' && Number.isFinite(r) && Number.isFinite(v) && r !== 0
+      ? (((v - r) / r) * 100).toFixed(2) + '%' : '';
+  row.querySelector('.gaps').value =
+    rText !== '' && vText !== '' && Number.isFinite(r) && Number.isFinite(v)
+      ? String(v - r) : '';
 }
 
 /* TOOLS */
@@ -1129,53 +1099,91 @@ function saveEvaluation() {
 
 /* OPEN EXISTING EVALUATION */
 
-function openEvaluation(id) {
+
+function setFormReadOnly(readOnly) {
+  $('formActions').classList.toggle('hidden', readOnly);
+  $('submittedNotice').classList.toggle('hidden', !readOnly);
+  $('service').readOnly = readOnly;
+  $('healthCenter').readOnly = readOnly;
+  $('evaluationDate').disabled = readOnly;
+  document.querySelectorAll('#dataRows input, #dataRows textarea, #dataRows select, #toolRows input, #toolRows textarea, #toolRows select')
+    .forEach(el => { el.disabled = readOnly; });
+  document.querySelectorAll('#dataRows .danger, #toolRows .danger')
+    .forEach(btn => btn.classList.toggle('hidden', readOnly));
+}
+
+function reportRows(rows, fields) {
+  if (!rows || !rows.length) return '<tr><td colspan="' + fields.length + '">&nbsp;</td></tr>'.repeat(5);
+  return rows.map(row => '<tr>' + fields.map(f =>
+    '<td>' + escapeValue(row[f] ?? '') + '</td>'
+  ).join('') + '</tr>').join('');
+}
+
+function buildReportHtml(result) {
+  const e = result.evaluation;
+  const items = reportRows(result.items, ['DataElement','ReportedValue','VerifiedValue','DiscrepancyPercent','IdentifiedGaps','ActionTaken']);
+  const tools = reportRows(result.tools, ['ToolName','ExpectedNumber','AvailableNumber','DiscrepancyPercent','AllFieldsComplete','ActionTaken']);
+  const fileId = e.pdfFileId || '';
+  const download = fileId ? 'https://drive.google.com/uc?export=download&id=' + encodeURIComponent(fileId) : (e.pdfUrl || '');
+  const safe = v => escapeValue(v || '');
+  return `<!doctype html><html><head><meta charset="utf-8"><title>NASHO HC Data Validation Report</title>
+  <style>
+  @page{size:A4 landscape;margin:12mm}*{box-sizing:border-box}
+  body{font-family:"Times New Roman",serif;color:#111;font-size:12px;margin:0;padding:18px}
+  .actions{font-family:Arial,sans-serif;margin:0 0 18px;display:flex;gap:8px}
+  .actions button,.actions a{background:#0876a8;color:white;border:0;padding:9px 14px;border-radius:4px;text-decoration:none;cursor:pointer}
+  h1{font-size:17px;margin:0 0 4px}h2{font-size:14px;font-weight:normal;margin:0 0 18px}
+  .meta{line-height:2;margin:8px 0 12px}.dotted{display:inline-block;border-bottom:1px dotted #111;min-width:120px}
+  .verify{line-height:2.2;margin:5px 0}table{width:100%;border-collapse:collapse;table-layout:fixed;margin:7px 0 18px}
+  th,td{border:1px solid #111;padding:6px 5px;text-align:left;vertical-align:top;overflow-wrap:anywhere}
+  th{font-weight:normal}.data th:nth-child(1){width:20%}.data th:nth-child(2),.data th:nth-child(3){width:9%}
+  .data th:nth-child(4){width:10%}.data th:nth-child(5){width:22%}.data th:nth-child(6){width:18%}
+  .head{margin-top:26px}@media print{body{padding:0}.actions{display:none}}
+  </style></head><body>
+  <div class="actions"><button onclick="window.print()">Print</button>${download ? '<a href="'+download+'" target="_blank" rel="noopener">Download PDF</a>' : ''}</div>
+  <h1>NAME OF HEALTH CENTER: NASHO HEALTH CENTER</h1><h2>Data validation sheet</h2>
+  <div class="meta">Service: <span class="dotted">${safe(e.service)}</span>
+  &nbsp; Names of responsible: <span class="dotted">${safe(e.representativeName)}</span>
+  &nbsp; Date: <span class="dotted">${safe(String(e.evaluationDate).slice(0,10))}</span>
+  &nbsp; Signature: <span class="dotted">&nbsp;</span></div>
+  <div class="verify">1) Verified by <span class="dotted">&nbsp;</span> Function <span class="dotted">&nbsp;</span> Date <span class="dotted">&nbsp;</span> Signature <span class="dotted">&nbsp;</span></div>
+  <div class="verify">2) Verified by <span class="dotted">&nbsp;</span> Function <span class="dotted">&nbsp;</span> Date <span class="dotted">&nbsp;</span> Signature <span class="dotted">&nbsp;</span></div>
+  <table class="data"><thead><tr><th>Data Element</th><th>Reported<br>Value</th><th>Verified<br>Value</th><th>% of<br>discrepancy</th><th>Identified Gaps</th><th>Action<br>Taken</th></tr></thead><tbody>${items}</tbody></table>
+  <div>Table 2. Assessing tools (Registers/e-registers, reporting forms, patient files, etc)</div>
+  <table><thead><tr><th>Tools Assessed</th><th>Expected number</th><th>Available number</th><th>% Of discrepancies</th><th>All required field are complete yes/no</th><th>Action Taken</th></tr></thead><tbody>${tools}</tbody></table>
+  <div class="head">HEAD OF HEALTH CENTER: <b>TUYISHIME Japhet</b></div></body></html>`;
+}
+
+function viewReport(id) {
+  const win = window.open('', '_blank');
+  if (!win) { showMessage('Please allow pop-ups to view the report.', true); return; }
   api('getEvaluation', [token, id], result => {
-
-    const e = result.evaluation;
-
-    $('evaluationId').value = id;
-    $('service').value = e.service;
-    $('healthCenter').value = e.healthCenter;
-    $('evaluationDate').value =
-      String(e.evaluationDate).slice(0,10);
-
-    $('chiefName').value = e.chiefName || '';
-    $('chiefSignature').value = e.chiefSignature || '';
-    $('auditorName').value = e.auditorName || '';
-    $('auditorSignature').value = e.auditorSignature || '';
-
-    $('dataRows').innerHTML = '';
-    $('toolRows').innerHTML = '';
-
-    result.items.forEach(addDataRow);
-    result.tools.forEach(addToolRow);
-
-    $('evaluationForm').classList.remove('hidden');
+    win.document.open();
+    win.document.write(buildReportHtml(result));
+    win.document.close();
   });
 }
 
-/* SIGNATURES */
-
-function sign(type) {
-  const id = $('evaluationId').value;
-
-  if (!id) {
-    showMessage('Save the evaluation before signing.', true);
-    return;
-  }
-
-  const name = $(type + 'Name').value;
-  const signature = $(type + 'Signature').value;
-
-  api(
-    'signEvaluation',
-    [token, id, type, name, signature],
-    () => {
-      showMessage(type + ' signature recorded.');
-      refreshHistory();
+function openEvaluation(id) {
+  api('getEvaluation', [token, id], result => {
+    const e = result.evaluation;
+    if (e.status === 'Submitted' || e.status === 'Completed') {
+      const win = window.open('', '_blank');
+      if (!win) { showMessage('Please allow pop-ups to view the report.', true); return; }
+      win.document.open(); win.document.write(buildReportHtml(result)); win.document.close();
+      return;
     }
-  );
+    $('evaluationId').value = id;
+    $('service').value = e.service || '';
+    $('healthCenter').value = e.healthCenter || 'NASHO HEALTH CENTER';
+    $('evaluationDate').value = String(e.evaluationDate || '').slice(0,10);
+    $('dataRows').innerHTML = '';
+    $('toolRows').innerHTML = '';
+    result.items.forEach(addDataRow);
+    result.tools.forEach(addToolRow);
+    $('evaluationForm').classList.remove('hidden');
+    setFormReadOnly(false);
+  });
 }
 
 /* FINAL SUBMISSION */
