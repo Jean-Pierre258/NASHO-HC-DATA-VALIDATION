@@ -1,0 +1,1566 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<base target="_top">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>NASHO HEALTH CENTER - Data Validation System</title>
+
+<style>
+:root {
+  --navy: #063b66;
+  --blue: #0876a8;
+  --teal: #0d9488;
+  --bg: #f3f7fa;
+  --line: #d9e3eb;
+  --text: #193247;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  font-family: Arial, sans-serif;
+  color: var(--text);
+}
+
+header {
+  background: linear-gradient(110deg,var(--navy),var(--blue));
+  color: white;
+  padding: 18px 22px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+header h1 { font-size: 19px; margin: 0; }
+
+.wrap {
+  max-width: 1200px;
+  margin: 22px auto;
+  padding: 0 14px;
+}
+
+.card {
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 18px;
+  margin-bottom: 16px;
+}
+
+h2 { font-size: 18px; color: var(--navy); margin-top: 0; }
+h3 { font-size: 15px; color: var(--navy); }
+
+label {
+  display: block;
+  font-weight: bold;
+  margin: 9px 0 5px;
+}
+
+input, select, textarea {
+  width: 100%;
+  padding: 11px;
+  border: 1px solid #c7d4df;
+  border-radius: 7px;
+  font: inherit;
+  background: white;
+}
+
+textarea { min-height: 65px; }
+
+button {
+  background: var(--blue);
+  color: white;
+  border: 0;
+  border-radius: 7px;
+  padding: 10px 14px;
+  margin: 5px 4px 5px 0;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+button:hover { opacity: .9; }
+
+.secondary { background: #e7eef4; color: var(--navy); }
+.danger { background: #b42318; }
+
+.row {
+  display: grid;
+  grid-template-columns: repeat(3,minmax(0,1fr));
+  gap: 12px;
+}
+
+.two { grid-template-columns: repeat(2,minmax(0,1fr)); }
+
+.hidden { display: none !important; }
+
+.status {
+  padding: 10px;
+  border-radius: 7px;
+  background: #e8f5f3;
+  color: #075e57;
+  margin-bottom: 12px;
+}
+
+.error { background: #fff0ef; color: #a1261c; }
+.muted { color: #63788a; }
+
+.tablewrap { overflow: auto; }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 700px;
+}
+
+th, td {
+  border-bottom: 1px solid var(--line);
+  padding: 9px;
+  text-align: left;
+}
+
+th { background: #edf4f8; color: var(--navy); }
+
+.item {
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  padding: 12px;
+  margin: 10px 0;
+}
+
+.metric {
+  font-size: 26px;
+  font-weight: bold;
+  color: var(--blue);
+}
+
+.profile { display: flex; align-items: center; gap: 10px; }
+
+.avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #ddd;
+}
+
+/* =========================
+   NEW LOGIN SCREEN
+========================= */
+
+body.login-active {
+  background: #f4f7fb;
+}
+
+body.login-active header {
+  display: none;
+}
+
+body.login-active .wrap {
+  max-width: none;
+  padding: 0;
+  margin: 0;
+}
+
+.login-layout {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 43% 57%;
+  background: white;
+}
+
+.login-brand {
+  background: linear-gradient(145deg,#063b66,#0876a8);
+  color: white;
+  padding: 65px 55px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.login-brand:before {
+  content: "";
+  position: absolute;
+  width: 350px;
+  height: 350px;
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 50%;
+  right: -150px;
+  bottom: -120px;
+}
+
+.brand-logo {
+  width: 75px;
+  height: 75px;
+  border-radius: 18px;
+  background: white;
+  color: var(--navy);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 27px;
+  font-weight: bold;
+  margin-bottom: 35px;
+}
+
+.login-brand h1 {
+  font-size: 30px;
+  line-height: 1.25;
+  margin: 0 0 12px;
+  color: white;
+}
+
+.login-brand h2 {
+  color: #d9efff;
+  font-size: 17px;
+  letter-spacing: 2px;
+  margin-bottom: 20px;
+}
+
+.login-brand p {
+  color: #e2edf5;
+  line-height: 1.7;
+  max-width: 420px;
+}
+
+.brand-footer {
+  margin-top: 65px;
+  font-size: 12px;
+  color: #d5e7f4;
+}
+
+.login-right {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 35px;
+}
+
+.login-box {
+  width: 100%;
+  max-width: 440px;
+}
+
+.login-heading {
+  margin-bottom: 25px;
+}
+
+.login-heading h2 {
+  font-size: 28px;
+  color: #123b5b;
+  margin-bottom: 8px;
+}
+
+.login-heading p {
+  color: #718096;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.login-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: #edf2f7;
+  padding: 5px;
+  border-radius: 9px;
+  margin-bottom: 25px;
+}
+
+.login-tab {
+  padding: 12px;
+  border: 0;
+  background: transparent;
+  color: #526579;
+  border-radius: 7px;
+  margin: 0;
+}
+
+.login-tab.active {
+  background: white;
+  color: var(--blue);
+  box-shadow: 0 2px 7px rgba(0,0,0,.08);
+}
+
+.login-form label {
+  font-size: 13px;
+  color: #34495e;
+  margin-top: 17px;
+}
+
+.login-form input {
+  padding: 13px;
+  border: 1px solid #d5dee8;
+  margin-top: 5px;
+}
+
+.login-form input:focus {
+  outline: none;
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(8,118,168,.10);
+}
+
+.login-submit {
+  width: 100%;
+  padding: 14px;
+  margin: 22px 0 0;
+  border-radius: 8px;
+  background: var(--blue);
+  font-size: 15px;
+}
+
+.login-note {
+  text-align: center;
+  color: #8493a3;
+  font-size: 12px;
+  margin-top: 25px;
+}
+
+.login-help {
+  color: #63788a;
+  font-size: 13px;
+  margin-top: 15px;
+  line-height: 1.5;
+}
+
+@media(max-width:800px) {
+  .login-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .login-brand {
+    padding: 35px 25px;
+    min-height: 280px;
+  }
+
+  .brand-logo {
+    width: 55px;
+    height: 55px;
+    margin-bottom: 18px;
+  }
+
+  .login-brand h1 { font-size: 23px; }
+
+  .brand-footer { margin-top: 25px; }
+
+  .login-right { padding: 35px 22px; }
+}
+
+@media(max-width:700px) {
+  .row, .two { grid-template-columns: 1fr; }
+}
+
+.signature-preview{display:block;max-width:170px;max-height:70px;object-fit:contain;margin-top:7px;border:1px solid #d6dce4;padding:4px;background:#fff}
+.verified-row{border:1px solid #dce5ee;border-radius:8px;padding:12px;margin:10px 0}
+.verified-row .row{align-items:end}
+</style>
+</head>
+
+<body class="login-active">
+
+<header>
+  <div>
+    <h1>NASHO HEALTH CENTER</h1>
+    <small>DATA VALIDATION SYSTEM</small>
+  </div>
+
+  <div id="profile" class="profile hidden">
+    <img id="avatar" class="avatar">
+    <div>
+      <b id="who"></b>
+      <div id="role"></div>
+    </div>
+    <button class="secondary" onclick="logout()">Logout</button>
+  </div>
+</header>
+
+<div class="wrap">
+
+<div id="message" class="hidden"></div>
+
+<!-- LOGIN -->
+<section id="login" class="login-layout">
+
+  <div class="login-brand">
+    <div class="brand-logo">NH</div>
+
+    <h1>NASHO HEALTH CENTER</h1>
+    <h2>DATA VALIDATION SYSTEM</h2>
+
+    <p>
+      A centralized platform for health data validation,
+      quality assurance, internal evaluation and reporting.
+    </p>
+
+    <p>
+      Supporting accurate health information and
+      evidence-based decision making.
+    </p>
+
+    <div class="brand-footer">
+      © NASHO HEALTH CENTER
+      <br>
+      Data Management & Quality Improvement
+    </div>
+  </div>
+
+  <div class="login-right">
+    <div class="login-box">
+
+      <div class="login-heading">
+        <h2>Welcome back</h2>
+        <p>Sign in to access the Data Validation System.</p>
+      </div>
+
+      <div class="login-tabs">
+        <button id="staffTab" class="login-tab active"
+          onclick="switchLogin('staff')">
+          Staff Login
+        </button>
+
+        <button id="adminTab" class="login-tab"
+          onclick="switchLogin('admin')">
+          Admin Login
+        </button>
+      </div>
+
+      <!-- STAFF LOGIN -->
+      <div id="staffLoginForm" class="login-form">
+
+        <label>Email or phone number</label>
+        <input id="identifier"
+          placeholder="Enter registered email or phone">
+
+        <button class="login-submit" onclick="requestCode()">
+          Send verification code
+        </button>
+
+        <label>Verification code</label>
+        <input id="otp" placeholder="Enter verification code">
+
+        <button class="login-submit" onclick="verifyCode()">
+          Verify and Login
+        </button>
+
+        <p class="login-help">
+          A verification code will be sent to your registered email.
+          Use the email or phone number registered by the administrator.
+        </p>
+
+      </div>
+
+      <!-- ADMIN LOGIN -->
+      <div id="adminLoginForm" class="login-form hidden">
+
+        <label>Administrator username</label>
+        <input id="adminUsername"
+          placeholder="Enter administrator username"
+          autocomplete="username">
+
+        <label>Password</label>
+        <input id="adminPassword"
+          type="password"
+          placeholder="Enter password"
+          autocomplete="current-password">
+
+        <button class="login-submit" onclick="adminLogin()">
+          Login as Administrator
+        </button>
+
+        <p class="login-help">
+          Administrator access is restricted to authorized accounts.
+        </p>
+
+      </div>
+
+      <div class="login-note">
+        Secure access · NASHO HEALTH CENTER
+      </div>
+
+    </div>
+  </div>
+
+</section>
+
+<!-- APPLICATION -->
+<section id="application" class="hidden">
+
+  <!-- ADMIN DASHBOARD -->
+  <div id="adminPanel" class="card hidden">
+
+    <h2>Administrator Dashboard</h2>
+
+    <div class="row">
+      <div>
+        <div class="metric" id="totalUsers">0</div>
+        Active users
+      </div>
+
+      <div>
+        <div class="metric" id="totalEvaluations">0</div>
+        Evaluations
+      </div>
+
+      <div>
+        <div class="metric" id="pendingEvaluations">0</div>
+        Pending evaluations
+      </div>
+    </div>
+
+    <hr>
+
+    <h3>Create or Assign User</h3>
+
+    <input id="userId" type="hidden">
+
+    <div class="row">
+
+      <div>
+        <label>Full name</label>
+        <input id="fullName">
+      </div>
+
+      <div>
+        <label>Role</label>
+        <select id="userRole">
+          <option>Representative</option>
+          <option>Viewer</option>
+          <option>Admin</option>
+        </select>
+      </div>
+
+      <div>
+        <label>Service</label>
+        <input id="userService" placeholder="e.g. Maternity">
+      </div>
+
+      <div>
+        <label>Health center</label>
+        <input id="userHC" value="NASHO HEALTH CENTER">
+      </div>
+
+      <div>
+        <label>Email</label>
+        <input id="userEmail" type="email">
+      </div>
+
+      <div>
+        <label>Phone</label>
+        <input id="userPhone">
+      </div>
+
+      <div>
+        <label>Profile photo URL</label>
+        <input id="userPhoto">
+      </div>
+
+    </div>
+
+    <button onclick="saveUser()">Save User</button>
+    <button class="secondary" onclick="clearUser()">Clear</button>
+
+    <h3>Registered Users</h3>
+
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Role</th>
+            <th>Service</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="usersTable"></tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <!-- EVALUATIONS -->
+  <div class="card">
+
+    <h2>Evaluation Workspace</h2>
+
+    <button onclick="newEvaluation()">+ New Evaluation</button>
+
+    <div id="evaluationForm" class="hidden">
+
+      <input id="evaluationId" type="hidden">
+      <input id="healthCenter" type="hidden" value="NASHO HEALTH CENTER">
+
+      <div class="row">
+        <div>
+          <label>Service</label>
+          <input id="service">
+        </div>
+        <div>
+          <label>Names of responsible</label>
+          <input id="responsibleName" readonly>
+        </div>
+        <div>
+          <label>Date</label>
+          <input id="evaluationDate" type="date" readonly>
+        </div>
+        <div>
+          <label>Signature (upload image)</label>
+          <input id="responsibleSignature" type="file" accept="image/*">
+          <img id="responsibleSignaturePreview" class="signature-preview hidden" alt="Responsible person's signature preview">
+        </div>
+      </div>
+
+      <div id="representativeAssignment" class="hidden">
+        <label>Responsible representative</label>
+        <select id="representative"></select>
+      </div>
+
+      <h3>VERIFICATION</h3>
+      <div id="verifiedRows"></div>
+      <button type="button" class="secondary" onclick="addVerifiedRow()">+ Add Verified By</button>
+
+      <h3>DATA ELEMENTS VALIDATED</h3>
+      <div id="dataRows"></div>
+
+      <button class="secondary" onclick="addDataRow()">
+        + Add Data Element
+      </button>
+
+      <h3>TOOLS ASSESSED</h3>
+      <div id="toolRows"></div>
+
+      <button class="secondary" onclick="addToolRow()">
+        + Add Tool
+      </button>
+
+      <div id="formActions">
+        <button onclick="saveEvaluation()">Save Draft</button>
+        <button onclick="submitEvaluation()">Submit Internal Evaluation</button>
+      </div>
+      <p id="submittedNotice" class="status hidden">
+        This report has been submitted and is locked. It can only be viewed or printed.
+      </p>
+
+      <button class="secondary" onclick="closeEvaluation()">
+        Close
+      </button>
+
+    </div>
+
+    <h3>Evaluation History</h3>
+
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Service</th>
+            <th>Representative</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="historyTable"></tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <div id="auditPanel" class="card hidden">
+    <h2>Evaluation Activity History</h2>
+    <div id="auditContent"></div>
+  </div>
+
+</section>
+
+</div>
+
+<script>
+let token = '';
+let currentUser = null;
+const AUTH_STORAGE_KEY = 'NASHO_HC_AUTH_SESSION_V1';
+const IDLE_LIMIT_MS = 10 * 60 * 1000;
+const HEARTBEAT_INTERVAL_MS = 2 * 60 * 1000;
+let idleTimer = null;
+let lastHeartbeatAt = 0;
+let restoringSession = false;
+
+const $ = id => document.getElementById(id);
+
+/* LOGIN TABS */
+
+function switchLogin(type) {
+  const staff = type === 'staff';
+
+  $('staffLoginForm').classList.toggle('hidden', !staff);
+  $('adminLoginForm').classList.toggle('hidden', staff);
+
+  $('staffTab').classList.toggle('active', staff);
+  $('adminTab').classList.toggle('active', !staff);
+
+  $('message').classList.add('hidden');
+}
+
+function showMessage(text, error=false) {
+  $('message').textContent = text;
+  $('message').className = 'status' + (error ? ' error' : '');
+  $('message').classList.remove('hidden');
+}
+
+function handleError(error) {
+  const message = error && error.message
+    ? error.message
+    : String(error || 'An unexpected error occurred.');
+  showMessage(message, true);
+}
+
+/* GOOGLE APPS SCRIPT CONNECTION */
+
+const APPSCRIPT_URL =
+  'https://script.google.com/macros/s/AKfycbxPKKE6bdYC6CEGio04KjmRQ6G7TPjv272EpsFiJDYlVmpiv45U6cW4lRYEKLnLk0b3/exec';
+
+/* API CONNECTION */
+
+async function api(functionName, args = [], callback) {
+  try {
+    const response = await fetch(APPSCRIPT_URL, {
+      method: 'POST',
+      redirect: 'follow',
+      headers: {
+        'Content-Type': 'text/plain;charset=utf-8'
+      },
+      body: JSON.stringify({
+        action: functionName,
+        args: args
+      })
+    });
+
+    let result;
+
+    try {
+      result = await response.json();
+    } catch (_) {
+      throw new Error(
+        'Google Apps Script returned an invalid response. Check your deployment and doPost(e).'
+      );
+    }
+
+    if (!response.ok || !result || result.success !== true) {
+      const errorMessage = (result && result.error) ||
+        ('Request failed with HTTP ' + response.status);
+      if (/session (expired|token is missing)/i.test(errorMessage) && token) {
+        forceLogout('Your session expired. Please log in again.');
+      }
+      throw new Error(errorMessage);
+    }
+
+    if (typeof callback === 'function') {
+      callback(result.data);
+    }
+
+    return result.data;
+
+  } catch (error) {
+    handleError(error);
+    return null;
+  }
+}
+
+/* LOGIN */
+
+function requestCode() {
+  const identifier = $('identifier').value.trim();
+
+  if (!identifier) {
+    showMessage('Enter your registered email or phone number.', true);
+    return;
+  }
+
+  api('requestLoginCode', [identifier], showMessage);
+}
+
+function verifyCode() {
+  const identifier = $('identifier').value.trim();
+  const otp = $('otp').value.trim();
+
+  if (!identifier || !otp) {
+    showMessage('Enter your registered details and verification code.', true);
+    return;
+  }
+
+  api(
+    'verifyLoginCode',
+    [identifier, otp],
+    enterApplication
+  );
+}
+
+function adminLogin() {
+  const username = $('adminUsername').value.trim();
+  const password = $('adminPassword').value;
+
+  if (!username || !password) {
+    showMessage('Enter administrator username and password.', true);
+    return;
+  }
+
+  const button = $('adminLoginForm').querySelector('button.login-submit');
+  if (button) {
+    button.disabled = true;
+    button.textContent = 'Signing in...';
+  }
+
+  api(
+    'adminLogin',
+    [username, password],
+    session => {
+      if (button) {
+        button.disabled = false;
+        button.textContent = 'Login as Administrator';
+      }
+      enterApplication(session);
+    }
+  );
+
+  window.setTimeout(() => {
+    if (button && document.body.classList.contains('login-active')) {
+      button.disabled = false;
+      button.textContent = 'Login as Administrator';
+    }
+  }, 15000);
+}
+
+function enterApplication(session) {
+  if (!session || !session.token || !session.user) {
+    showMessage('Invalid login response. Contact the administrator.', true);
+    return;
+  }
+
+  token = session.token;
+  currentUser = session.user;
+  try {
+    localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify({
+      token: token,
+      user: currentUser
+    }));
+  } catch (storageError) {
+    console.warn('Could not persist the login session in this browser.', storageError);
+  }
+  startIdleProtection();
+  lastHeartbeatAt = Date.now();
+
+  document.body.classList.remove('login-active');
+
+  $('login').classList.add('hidden');
+  $('application').classList.remove('hidden');
+  $('profile').classList.remove('hidden');
+
+  $('who').textContent = currentUser.fullName;
+  $('role').textContent =
+    currentUser.role + ' | ' + (currentUser.service || 'All Services');
+
+  $('avatar').src = currentUser.photoURL ||
+    'https://www.gravatar.com/avatar/?d=mp';
+
+  $('adminPanel').classList.toggle(
+    'hidden',
+    currentUser.role !== 'Admin'
+  );
+
+  $('representativeAssignment').classList.toggle(
+    'hidden',
+    currentUser.role !== 'Admin'
+  );
+
+  refreshHistory();
+
+  if (currentUser.role === 'Admin') {
+    loadAdmin();
+  }
+}
+
+function clearStoredSession() {
+  try { localStorage.removeItem(AUTH_STORAGE_KEY); } catch (_) {}
+}
+
+function stopIdleProtection() {
+  if (idleTimer) window.clearTimeout(idleTimer);
+  idleTimer = null;
+}
+
+function forceLogout(message) {
+  const oldToken = token;
+  token = '';
+  currentUser = null;
+  stopIdleProtection();
+  clearStoredSession();
+
+  if (oldToken) {
+    // Best-effort server-side invalidation; never block the local lock screen.
+    api('logout', [oldToken]);
+  }
+
+  $('application').classList.add('hidden');
+  $('profile').classList.add('hidden');
+  $('login').classList.remove('hidden');
+  document.body.classList.add('login-active');
+
+  if (message) showMessage(message, true);
+}
+
+function resetIdleTimer() {
+  if (!token || !currentUser) return;
+  if (idleTimer) window.clearTimeout(idleTimer);
+  idleTimer = window.setTimeout(() => {
+    forceLogout('You were signed out after 10 minutes of inactivity. Please log in again.');
+  }, IDLE_LIMIT_MS);
+
+  // Refresh the server-side inactivity timestamp periodically while the user
+  // is actively using the page, not on every mouse movement.
+  const now = Date.now();
+  if (now - lastHeartbeatAt >= HEARTBEAT_INTERVAL_MS) {
+    lastHeartbeatAt = now;
+    api('touchSession', [token], result => {
+      if (!result || result.valid !== true) {
+        forceLogout('Your session expired. Please log in again.');
+      }
+    });
+  }
+}
+
+function startIdleProtection() {
+  stopIdleProtection();
+  resetIdleTimer();
+}
+
+function restoreSavedSession() {
+  if (restoringSession) return;
+  restoringSession = true;
+
+  let saved = null;
+  try {
+    saved = JSON.parse(localStorage.getItem(AUTH_STORAGE_KEY) || 'null');
+  } catch (_) {
+    clearStoredSession();
+  }
+
+  if (!saved || !saved.token) {
+    restoringSession = false;
+    return;
+  }
+
+  (async () => {
+    const result = await api('validateSession', [saved.token]);
+    if (result && result.valid && result.user) {
+      enterApplication({
+        token: saved.token,
+        user: result.user
+      });
+    } else {
+      clearStoredSession();
+      showMessage('Your session expired. Please log in again.', true);
+    }
+    restoringSession = false;
+  })();
+}
+
+function logout() {
+  const oldToken = token;
+  token = '';
+  currentUser = null;
+  stopIdleProtection();
+  clearStoredSession();
+  if (oldToken) {
+    api('logout', [oldToken], () => {
+      $('application').classList.add('hidden');
+      $('profile').classList.add('hidden');
+      $('login').classList.remove('hidden');
+      document.body.classList.add('login-active');
+      showMessage('You have signed out successfully.');
+    });
+  } else {
+    forceLogout('You have signed out successfully.');
+  }
+}
+
+// Any real user activity restarts the ten-minute inactivity countdown.
+['click', 'keydown', 'mousemove', 'scroll', 'touchstart', 'input'].forEach(eventName => {
+  document.addEventListener(eventName, () => {
+    if (token) resetIdleTimer();
+  }, { passive: true });
+});
+
+// Restore a valid session after refresh instead of returning to the login page.
+document.addEventListener('DOMContentLoaded', restoreSavedSession);
+
+/* HISTORY */
+
+function refreshHistory() {
+  api('listEvaluations', [token], evaluations => {
+
+    $('historyTable').innerHTML = evaluations.map(e => `
+      <tr>
+        <td>${e.evaluationDate}</td>
+        <td>${escapeValue(e.service)}</td>
+        <td>${escapeValue(e.representativeName)}</td>
+        <td>${escapeValue(e.status)}</td>
+        <td>
+          ${e.status === 'Submitted' || e.status === 'Completed'
+            ? `<button class="secondary" onclick="viewReport('${e.evaluationId}')">View Report</button>
+               ${e.pdfFileId ? `<a target="_blank" href="https://drive.google.com/uc?export=download&id=${encodeURIComponent(e.pdfFileId)}">Download PDF</a>` : ''}`
+            : `<button class="secondary" onclick="openEvaluation('${e.evaluationId}')">Edit Draft</button>`}
+
+          <button class="secondary" onclick="showAudit('${e.evaluationId}')">History</button>
+        </td>
+      </tr>
+    `).join('');
+
+  });
+}
+
+
+const responsibleSignatureInput = document.getElementById('responsibleSignature');
+if (responsibleSignatureInput) {
+  responsibleSignatureInput.addEventListener('change', async () => {
+    try {
+      const dataUrl = await fileToDataUrl(responsibleSignatureInput.files[0]);
+      const preview = $('responsibleSignaturePreview');
+      preview.src = dataUrl;
+      preview.classList.toggle('hidden', !dataUrl);
+    } catch (err) {
+      responsibleSignatureInput.value = '';
+      showMessage(err.message, true);
+    }
+  });
+}
+
+/* FORM */
+
+function newEvaluation() {
+  $('evaluationForm').classList.remove('hidden');
+  setFormReadOnly(false);
+
+  $('evaluationId').value = '';
+  $('service').value = currentUser.service || '';
+  $('healthCenter').value =
+    currentUser.healthCenter || 'NASHO HEALTH CENTER';
+
+  $('evaluationDate').value = localTodayISO();
+  $('responsibleName').value = currentUser.fullName || '';
+  $('responsibleSignature').value = '';
+  $('responsibleSignaturePreview').src = '';
+  $('responsibleSignaturePreview').classList.add('hidden');
+
+  $('verifiedRows').innerHTML = '';
+  $('dataRows').innerHTML = '';
+  $('toolRows').innerHTML = '';
+
+  addVerifiedRow();
+  addDataRow();
+  addToolRow();
+
+  setFormReadOnly(false);
+}
+
+
+function localTodayISO() {
+  const d = new Date();
+  const offset = d.getTimezoneOffset();
+  return new Date(d.getTime() - offset * 60000).toISOString().slice(0,10);
+}
+
+function fileToDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    if (!file) return resolve('');
+    if (!file.type || !file.type.startsWith('image/')) {
+      reject(new Error('Signature must be an image file.'));
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      reject(new Error('Signature image must be 2 MB or smaller.'));
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ''));
+    reader.onerror = () => reject(new Error('Could not read signature image.'));
+    reader.readAsDataURL(file);
+  });
+}
+
+function addVerifiedRow(x={}) {
+  const div = document.createElement('div');
+  div.className = 'verified-row item';
+  div.innerHTML = `
+    <div class="row">
+      <div><label>Verified by</label><input class="verifiedName" value="${escapeValue(x.name || x.VerifiedBy || '')}"></div>
+      <div><label>Function</label><input class="verifiedFunction" value="${escapeValue(x.function || x.Function || '')}"></div>
+      <div><label>Date</label><input class="verifiedDate" type="date" value="${escapeValue((x.date || x.Date || localTodayISO()).toString().slice(0,10))}"></div>
+      <div>
+        <label>Signature (upload image)</label>
+        <input class="verifiedSignature" type="file" accept="image/*">
+        <img class="signature-preview ${x.signatureDataUrl ? '' : 'hidden'}" alt="Verifier signature preview" src="${escapeValue(x.signatureDataUrl || '')}">
+        <input class="existingSignatureId" type="hidden" value="${escapeValue(x.signatureFileId || x.SignatureFileId || '')}">
+      </div>
+    </div>
+    <button type="button" class="danger remove-verified">Remove row</button>`;
+  div.querySelector('.remove-verified').addEventListener('click', () => div.remove());
+  const fileInput = div.querySelector('.verifiedSignature');
+  fileInput.addEventListener('change', async () => {
+    try {
+      const dataUrl = await fileToDataUrl(fileInput.files[0]);
+      const img = div.querySelector('img');
+      img.src = dataUrl;
+      img.classList.toggle('hidden', !dataUrl);
+      div.dataset.signatureDataUrl = dataUrl;
+    } catch (err) {
+      fileInput.value = '';
+      showMessage(err.message, true);
+    }
+  });
+  $('verifiedRows').appendChild(div);
+}
+
+function closeEvaluation() {
+  $('evaluationForm').classList.add('hidden');
+}
+
+function escapeValue(value) {
+  return String(value ?? '').replace(/[&<>"']/g, c => ({
+    '&':'&amp;',
+    '<':'&lt;',
+    '>':'&gt;',
+    '"':'&quot;',
+    "'":'&#39;'
+  })[c]);
+}
+
+/* DATA ELEMENT ROWS */
+
+function addDataRow(x={}) {
+  const div = document.createElement('div');
+  div.className = 'item';
+
+  div.innerHTML = `
+    <div class="row">
+
+      <div>
+        <label>Data Element</label>
+        <input class="dataElement" value="${escapeValue(x.DataElement || '')}">
+      </div>
+
+      <div>
+        <label>Reported Value</label>
+        <input class="reportedValue" value="${escapeValue(x.ReportedValue || '')}">
+      </div>
+
+      <div>
+        <label>Verified Value</label>
+        <input class="verifiedValue" value="${escapeValue(x.VerifiedValue || '')}">
+      </div>
+
+      <div>
+        <label>% of discrepancy</label>
+        <input class="discrepancy" value="${escapeValue(x.DiscrepancyPercent || '')}" readonly>
+      </div>
+
+      <div>
+        <label>Identified Gaps</label>
+        <input class="gaps" value="${escapeValue(x.IdentifiedGaps || '')}" readonly>
+      </div>
+
+      <div>
+        <label>Action Taken</label>
+        <textarea class="action">${escapeValue(x.ActionTaken || '')}</textarea>
+      </div>
+
+    </div>
+
+    <button class="danger" onclick="this.parentElement.remove()">
+      Remove Row
+    </button>
+  `;
+
+  $('dataRows').appendChild(div);
+  div.querySelectorAll('.reportedValue, .verifiedValue').forEach(input =>
+    input.addEventListener('input', () => recalculateDataRow(div))
+  );
+  recalculateDataRow(div);
+}
+
+function recalculateDataRow(row) {
+  const rText = row.querySelector('.reportedValue').value.trim();
+  const vText = row.querySelector('.verifiedValue').value.trim();
+  const r = Number(rText), v = Number(vText);
+  row.querySelector('.discrepancy').value =
+    rText !== '' && vText !== '' && Number.isFinite(r) && Number.isFinite(v) && r !== 0
+      ? (((v - r) / r) * 100).toFixed(2) + '%' : '';
+  row.querySelector('.gaps').value =
+    rText !== '' && vText !== '' && Number.isFinite(r) && Number.isFinite(v)
+      ? String(v - r) : '';
+}
+
+/* TOOLS */
+
+function addToolRow(x={}) {
+  const div = document.createElement('div');
+  div.className = 'item';
+
+  div.innerHTML = `
+    <div class="row">
+
+      <div>
+        <label>Tools Assessed</label>
+        <input class="toolName" value="${escapeValue(x.ToolName || '')}">
+      </div>
+
+      <div>
+        <label>Expected Number</label>
+        <input class="expected" value="${escapeValue(x.ExpectedNumber || '')}">
+      </div>
+
+      <div>
+        <label>Available Number</label>
+        <input class="available" value="${escapeValue(x.AvailableNumber || '')}">
+      </div>
+
+      <div>
+        <label>% of discrepancies</label>
+        <input class="toolDiscrepancy" value="${escapeValue(x.DiscrepancyPercent || '')}">
+      </div>
+
+      <div>
+        <label>All required fields complete?</label>
+        <select class="complete">
+          <option value="">Select</option>
+          <option ${x.AllFieldsComplete === 'Yes' ? 'selected' : ''}>Yes</option>
+          <option ${x.AllFieldsComplete === 'No' ? 'selected' : ''}>No</option>
+        </select>
+      </div>
+
+      <div>
+        <label>Action Taken</label>
+        <textarea class="toolAction">${escapeValue(x.ActionTaken || '')}</textarea>
+      </div>
+
+    </div>
+
+    <button class="danger" onclick="this.parentElement.remove()">
+      Remove Row
+    </button>
+  `;
+
+  $('toolRows').appendChild(div);
+}
+
+/* COLLECT FORM DATA */
+
+function collectRows(container, mapping) {
+  return [...document.querySelectorAll('#' + container + ' .item')]
+    .map(row => {
+      const result = {};
+
+      Object.keys(mapping).forEach(key => {
+        result[key] =
+          row.querySelector('.' + mapping[key]).value;
+      });
+
+      return result;
+    });
+}
+
+async function getFormData() {
+  const responsibleSignatureData = await fileToDataUrl($('responsibleSignature').files[0]);
+  const verifiedBy = await Promise.all(
+    [...document.querySelectorAll('#verifiedRows .verified-row')].map(async row => ({
+      name: row.querySelector('.verifiedName').value,
+      function: row.querySelector('.verifiedFunction').value,
+      date: row.querySelector('.verifiedDate').value,
+      signatureData: await fileToDataUrl(row.querySelector('.verifiedSignature').files[0]),
+      existingSignatureId: row.querySelector('.existingSignatureId').value
+    }))
+  );
+  return {
+    evaluationId: $('evaluationId').value,
+    service: $('service').value,
+    healthCenter: $('healthCenter').value,
+    evaluationDate: $('evaluationDate').value,
+    representativeId: $('representative') ? $('representative').value : '',
+    responsibleSignatureData: responsibleSignatureData,
+    verifiedBy: verifiedBy,
+
+    items: collectRows('dataRows', {
+      dataElement: 'dataElement',
+      reportedValue: 'reportedValue',
+      verifiedValue: 'verifiedValue',
+      discrepancyPercent: 'discrepancy',
+      identifiedGaps: 'gaps',
+      actionTaken: 'action'
+    }),
+
+    tools: collectRows('toolRows', {
+      toolName: 'toolName',
+      expectedNumber: 'expected',
+      availableNumber: 'available',
+      discrepancyPercent: 'toolDiscrepancy',
+      allFieldsComplete: 'complete',
+      actionTaken: 'toolAction'
+    })
+  };
+}
+
+/* SAVE */
+
+async function saveEvaluation() {
+  try {
+    const formData = await getFormData();
+    api('saveEvaluation', [token, formData], id => {
+      $('evaluationId').value = id;
+      showMessage('Evaluation saved successfully.');
+      refreshHistory();
+    });
+  } catch (err) {
+    showMessage(err.message || 'Could not read signature images.', true);
+  }
+}
+
+/* OPEN EXISTING EVALUATION */
+
+
+function setFormReadOnly(readOnly) {
+  $('formActions').classList.toggle('hidden', readOnly);
+  $('submittedNotice').classList.toggle('hidden', !readOnly);
+  $('service').readOnly = readOnly;
+  if ($('healthCenter')) $('healthCenter').readOnly = readOnly;
+  $('evaluationDate').disabled = true;
+  $('responsibleSignature').disabled = readOnly;
+  document.querySelectorAll('#verifiedRows input, #verifiedRows button, #dataRows input, #dataRows textarea, #dataRows select, #toolRows input, #toolRows textarea, #toolRows select')
+    .forEach(el => { el.disabled = readOnly; });
+  document.querySelectorAll('#dataRows .danger, #toolRows .danger')
+    .forEach(btn => btn.classList.toggle('hidden', readOnly));
+}
+
+function reportRows(rows, fields) {
+  if (!rows || !rows.length) return '<tr><td colspan="' + fields.length + '">&nbsp;</td></tr>'.repeat(5);
+  return rows.map(row => '<tr>' + fields.map(f =>
+    '<td>' + escapeValue(row[f] ?? '') + '</td>'
+  ).join('') + '</tr>').join('');
+}
+
+function buildReportHtml(result) {
+  const e = result.evaluation;
+  const items = reportRows(result.items, ['DataElement','ReportedValue','VerifiedValue','DiscrepancyPercent','IdentifiedGaps','ActionTaken']);
+  const tools = reportRows(result.tools, ['ToolName','ExpectedNumber','AvailableNumber','DiscrepancyPercent','AllFieldsComplete','ActionTaken']);
+  const fileId = e.pdfFileId || '';
+  const download = fileId ? 'https://drive.google.com/uc?export=download&id=' + encodeURIComponent(fileId) : (e.pdfUrl || '');
+  const safe = v => escapeValue(v || '');
+  const signatureImg = data => data ? '<img class="sig-img" src="' + safe(data) + '">' : '<span class="dotted">&nbsp;</span>';
+  const verifierHtml = (e.verifiedBy || []).map((v, i) => `
+    <div class="verify">${i+1}) Verified by <span class="dotted">${safe(v.name)}</span>
+    Function <span class="dotted">${safe(v.function)}</span>
+    Date <span class="dotted">${safe(v.date)}</span>
+    Signature ${signatureImg(v.signatureDataUrl)}</div>`).join('') || '<div class="verify">1) Verified by <span class="dotted">&nbsp;</span> Function <span class="dotted">&nbsp;</span> Date <span class="dotted">&nbsp;</span> Signature <span class="dotted">&nbsp;</span></div>';
+  return `<!doctype html><html><head><meta charset="utf-8"><title>NASHO HC Data Validation Report</title>
+  <style>
+  @page{size:A4 landscape;margin:12mm}*{box-sizing:border-box}
+  body{font-family:"Times New Roman",serif;color:#111;font-size:12px;margin:0;padding:18px}
+  .actions{font-family:Arial,sans-serif;margin:0 0 18px;display:flex;gap:8px}
+  .actions button,.actions a{background:#0876a8;color:white;border:0;padding:9px 14px;border-radius:4px;text-decoration:none;cursor:pointer}
+  h1{font-size:17px;margin:0 0 4px}h2{font-size:14px;font-weight:normal;margin:0 0 18px}
+  .meta{line-height:2;margin:8px 0 12px}.dotted{display:inline-block;border-bottom:1px dotted #111;min-width:120px}
+  .verify{line-height:2.2;margin:5px 0}table{width:100%;border-collapse:collapse;table-layout:fixed;margin:7px 0 18px}
+  th,td{border:1px solid #111;padding:6px 5px;text-align:left;vertical-align:top;overflow-wrap:anywhere}
+  th{font-weight:normal}.data th:nth-child(1){width:20%}.data th:nth-child(2),.data th:nth-child(3){width:9%}
+  .data th:nth-child(4){width:10%}.data th:nth-child(5){width:22%}.data th:nth-child(6){width:18%}
+  .head{margin-top:26px}.sig-img{max-width:95px;max-height:42px;object-fit:contain;vertical-align:middle}@media print{body{padding:0}.actions{display:none}}
+  </style></head><body>
+  <div class="actions"><button onclick="window.print()">Print</button>${download ? '<a href="'+download+'" target="_blank" rel="noopener">Download PDF</a>' : ''}</div>
+  <h1>NAME OF HEALTH CENTER: NASHO HEALTH CENTER</h1><h2>Data validation sheet</h2>
+  <div class="meta">Service: <span class="dotted">${safe(e.service)}</span>
+  &nbsp; Names of responsible: <span class="dotted">${safe(e.representativeName)}</span>
+  &nbsp; Date: <span class="dotted">${safe(String(e.evaluationDate).slice(0,10))}</span>
+  &nbsp; Signature: ${signatureImg(e.responsibleSignatureDataUrl)}</div>
+  ${verifierHtml}
+  <table class="data"><thead><tr><th>Data Element</th><th>Reported<br>Value</th><th>Verified<br>Value</th><th>% of<br>discrepancy</th><th>Identified Gaps</th><th>Action<br>Taken</th></tr></thead><tbody>${items}</tbody></table>
+  <div>Table 2. Assessing tools (Registers/e-registers, reporting forms, patient files, etc)</div>
+  <table><thead><tr><th>Tools Assessed</th><th>Expected number</th><th>Available number</th><th>% Of discrepancies</th><th>All required field are complete yes/no</th><th>Action Taken</th></tr></thead><tbody>${tools}</tbody></table>
+  <div class="head">HEAD OF HEALTH CENTER: <b>TUYISHIME Japhet</b></div></body></html>`;
+}
+
+function viewReport(id) {
+  const win = window.open('', '_blank');
+  if (!win) { showMessage('Please allow pop-ups to view the report.', true); return; }
+  api('getEvaluation', [token, id], result => {
+    win.document.open();
+    win.document.write(buildReportHtml(result));
+    win.document.close();
+  });
+}
+
+function openEvaluation(id) {
+  api('getEvaluation', [token, id], result => {
+    const e = result.evaluation;
+    if (e.status === 'Submitted' || e.status === 'Completed') {
+      const win = window.open('', '_blank');
+      if (!win) { showMessage('Please allow pop-ups to view the report.', true); return; }
+      win.document.open(); win.document.write(buildReportHtml(result)); win.document.close();
+      return;
+    }
+    $('evaluationId').value = id;
+    $('service').value = e.service || '';
+    $('healthCenter').value = e.healthCenter || 'NASHO HEALTH CENTER';
+    $('evaluationDate').value = String(e.evaluationDate || '').slice(0,10);
+    $('responsibleName').value = e.representativeName || currentUser.fullName || '';
+    $('responsibleSignature').value = '';
+    const mainPreview = $('responsibleSignaturePreview');
+    mainPreview.src = e.responsibleSignatureDataUrl || '';
+    mainPreview.classList.toggle('hidden', !e.responsibleSignatureDataUrl);
+    $('verifiedRows').innerHTML = '';
+    $('dataRows').innerHTML = '';
+    $('toolRows').innerHTML = '';
+    (e.verifiedBy || []).forEach(addVerifiedRow);
+    if (!(e.verifiedBy || []).length) addVerifiedRow();
+    result.items.forEach(addDataRow);
+    result.tools.forEach(addToolRow);
+    $('evaluationForm').classList.remove('hidden');
+    setFormReadOnly(false);
+  });
+}
+
+/* FINAL SUBMISSION */
+
+function submitEvaluation() {
+  const id = $('evaluationId').value;
+
+  if (!id) {
+    showMessage('Save the evaluation first.', true);
+    return;
+  }
+
+  if (!confirm(
+    'Submit this internal evaluation and email the PDF report?'
+  )) return;
+
+  api('submitInternalEvaluation', [token, id], result => {
+    showMessage('Evaluation submitted. PDF: ' + result.pdfUrl);
+    refreshHistory();
+  });
+}
+
+/* AUDIT HISTORY */
+
+function showAudit(id) {
+  api('getEvaluationHistory', [token, id], records => {
+
+    $('auditPanel').classList.remove('hidden');
+
+    $('auditContent').innerHTML = records.map(record => `
+      <p>
+        <b>${escapeValue(record.Action)}</b><br>
+        ${escapeValue(record.ActorName)}<br>
+        ${new Date(record.Timestamp).toLocaleString()}<br>
+        ${escapeValue(record.Details)}
+      </p>
+      <hr>
+    `).join('') || 'No activity recorded.';
+  });
+}
+
+/* ADMIN */
+
+function loadAdmin() {
+  api('adminDashboard', [token], data => {
+    $('totalUsers').textContent = data.users;
+    $('totalEvaluations').textContent = data.evaluations;
+    $('pendingEvaluations').textContent = data.pending;
+  });
+
+  api('adminGetUsers', [token], users => {
+
+    $('usersTable').innerHTML = users.map(user => `
+      <tr>
+        <td>${escapeValue(user.fullName)}</td>
+        <td>${escapeValue(user.role)}</td>
+        <td>${escapeValue(user.service)}</td>
+        <td>${escapeValue(user.email)}</td>
+        <td>${escapeValue(user.phone)}</td>
+        <td>
+          <button class="secondary"
+            onclick='editUser(${JSON.stringify(user)})'>
+            Edit
+          </button>
+        </td>
+      </tr>
+    `).join('');
+
+    $('representative').innerHTML = users
+      .filter(user => user.role === 'Representative')
+      .map(user => `
+        <option value="${user.userId}">
+          ${escapeValue(user.fullName)} - ${escapeValue(user.service)}
+        </option>
+      `).join('');
+    $('representative').onchange = () => {
+      const selected = $('representative').selectedOptions[0];
+      $('responsibleName').value = selected
+        ? selected.textContent.split(' - ')[0].trim()
+        : (currentUser.fullName || '');
+    };
+  });
+}
+
+function editUser(user) {
+  $('userId').value = user.userId;
+  $('fullName').value = user.fullName;
+  $('userRole').value = user.role;
+  $('userService').value = user.service;
+  $('userHC').value = user.healthCenter;
+  $('userEmail').value = user.email;
+  $('userPhone').value = user.phone;
+  $('userPhoto').value = user.photoURL;
+}
+
+function clearUser() {
+  [
+    'userId',
+    'fullName',
+    'userService',
+    'userEmail',
+    'userPhone',
+    'userPhoto'
+  ].forEach(id => $(id).value = '');
+
+  $('userRole').value = 'Representative';
+  $('userHC').value = 'NASHO HEALTH CENTER';
+}
+
+function saveUser() {
+  const data = {
+    userId: $('userId').value,
+    fullName: $('fullName').value,
+    role: $('userRole').value,
+    service: $('userService').value,
+    healthCenter: $('userHC').value,
+    email: $('userEmail').value,
+    phone: $('userPhone').value,
+    photoURL: $('userPhoto').value,
+    active: true
+  };
+
+  api('adminSaveUser', [token, data], () => {
+    showMessage('User saved successfully.');
+    clearUser();
+    loadAdmin();
+  });
+}
+</script>
+
+</body>
+</html>

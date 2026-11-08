@@ -1,0 +1,10 @@
+{
+  "name": "NASHO HC Data Validation System",
+  "short_name": "NASHO Validation",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#063b66",
+  "description": "NASHO Health Center Data Validation System"
+}
