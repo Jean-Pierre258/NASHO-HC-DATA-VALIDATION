@@ -5,6 +5,8 @@
 <base target="_top">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#063b66">
+<link rel="manifest" href="/manifest.webmanifest">
 
 <title>NASHO HEALTH CENTER - Data Validation System</title>
 
@@ -360,6 +362,8 @@ body.login-active .wrap {
 .signature-preview{display:block;max-width:170px;max-height:70px;object-fit:contain;margin-top:7px;border:1px solid #d6dce4;padding:4px;background:#fff}
 .verified-row{border:1px solid #dce5ee;border-radius:8px;padding:12px;margin:10px 0}
 .verified-row .row{align-items:end}
+#offlineBar{font-family:Arial,sans-serif}#offlineBar.offline{background:#fff4e5;border-color:#f1d29b;color:#754600}#offlineBar.online{background:#eef8f0;border-color:#b9dfc2;color:#145b2b}
+#syncNowBtn{padding:6px 10px}
 </style>
 </head>
 
@@ -384,6 +388,11 @@ body.login-active .wrap {
 <div class="wrap">
 
 <div id="message" class="hidden"></div>
+<div id="offlineBar" role="status" aria-live="polite" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:#eef5fa;border:1px solid #c9dce9;padding:9px 12px;border-radius:8px;margin:10px 0;color:#063b66;font-size:13px">
+  <strong id="connectionState">Checking connection…</strong>
+  <span id="pendingCount">0 pending records</span>
+  <button type="button" class="secondary" id="syncNowBtn" onclick="syncPendingRecords()">Sync now</button>
+</div>
 
 <!-- LOGIN -->
 <section id="login" class="login-layout">
@@ -729,46 +738,37 @@ const APPSCRIPT_URL =
 
 /* API CONNECTION */
 
-async function api(functionName, args = [], callback) {
+async function api(functionName, args = [], callback, fromQueue = false) {
   try {
     const response = await fetch(APPSCRIPT_URL, {
-      method: 'POST',
-      redirect: 'follow',
-      headers: {
-        'Content-Type': 'text/plain;charset=utf-8'
-      },
-      body: JSON.stringify({
-        action: functionName,
-        args: args
-      })
+      method: 'POST', redirect: 'follow',
+      headers: {'Content-Type': 'text/plain;charset=utf-8'},
+      body: JSON.stringify({action:functionName,args:args})
     });
-
     let result;
-
-    try {
-      result = await response.json();
-    } catch (_) {
-      throw new Error(
-        'Google Apps Script returned an invalid response. Check your deployment and doPost(e).'
-      );
-    }
-
+    try { result = await response.json(); }
+    catch (_) { throw new Error('Google Apps Script returned an invalid response. Check deployment and doPost(e).'); }
     if (!response.ok || !result || result.success !== true) {
-      const errorMessage = (result && result.error) ||
-        ('Request failed with HTTP ' + response.status);
-      if (/session (expired|token is missing)/i.test(errorMessage) && token) {
-        forceLogout('Your session expired. Please log in again.');
-      }
+      const errorMessage = (result && result.error) || ('Request failed with HTTP ' + response.status);
+      if (/session (expired|token is missing)/i.test(errorMessage) && token) forceLogout('Your session expired. Please log in again.');
       throw new Error(errorMessage);
     }
-
-    if (typeof callback === 'function') {
-      callback(result.data);
-    }
-
+    if (typeof callback === 'function') callback(result.data);
     return result.data;
-
   } catch (error) {
+    // Only draft saves are queued. Login, signatures, user administration and final submission
+    // remain online-only to prevent false confirmations or duplicate external actions.
+    if (!fromQueue && functionName === 'saveEvaluation' && token && currentUser) {
+      try {
+        const queuedId = await queueEvaluationSave(args[0], args[1]);
+        if (queuedId) {
+          if (typeof callback === 'function') callback(queuedId);
+          showMessage('Saved on this device. It will sync when internet returns.', false);
+          updateOfflineStatus();
+          return queuedId;
+        }
+      } catch (queueError) { console.error('Offline queue failed:', queueError); }
+    }
     handleError(error);
     return null;
   }
@@ -838,7 +838,7 @@ function adminLogin() {
   }, 15000);
 }
 
-function enterApplication(session) {
+function enterApplication(session, offlineMode = false) {
   if (!session || !session.token || !session.user) {
     showMessage('Invalid login response. Contact the administrator.', true);
     return;
@@ -849,7 +849,7 @@ function enterApplication(session) {
   try {
     localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify({
       token: token,
-      user: currentUser
+      user: currentUser, savedAt: Date.now()
     }));
   } catch (storageError) {
     console.warn('Could not persist the login session in this browser.', storageError);
@@ -880,11 +880,13 @@ function enterApplication(session) {
     currentUser.role !== 'Admin'
   );
 
-  refreshHistory();
-
-  if (currentUser.role === 'Admin') {
-    loadAdmin();
+  if (!offlineMode && navigator.onLine) {
+    refreshHistory();
+    if (currentUser.role === 'Admin') loadAdmin();
+  } else {
+    renderQueuedDrafts();
   }
+  updateOfflineStatus();
 }
 
 function clearStoredSession() {
@@ -958,15 +960,23 @@ function restoreSavedSession() {
   }
 
   (async () => {
+    if (!navigator.onLine) {
+      const age = Date.now() - Number(saved.savedAt || 0);
+      if (saved.user && age >= 0 && age <= 8 * 60 * 60 * 1000) {
+        enterApplication({token:saved.token, user:saved.user}, true);
+        showMessage('Offline mode: local drafts are available. Server data and permissions cannot be refreshed until you reconnect.', false);
+      } else {
+        showMessage('Offline access expired. Connect to the internet and sign in again.', true);
+      }
+      restoringSession = false;
+      return;
+    }
     const result = await api('validateSession', [saved.token]);
     if (result && result.valid && result.user) {
-      enterApplication({
-        token: saved.token,
-        user: result.user
-      });
+      enterApplication({token:saved.token,user:result.user});
     } else {
       clearStoredSession();
-      showMessage('Your session expired. Please log in again.', true);
+      showMessage('Your server session expired. Connect and sign in again; queued drafts remain on this device.', true);
     }
     restoringSession = false;
   })();
@@ -1560,6 +1570,88 @@ function saveUser() {
     loadAdmin();
   });
 }
+
+/* OFFLINE-FIRST DEVICE STORAGE */
+const OFFLINE_DB_NAME = 'NASHO_HC_OFFLINE_V1';
+const OFFLINE_DB_VERSION = 1;
+let offlineDbPromise;
+function openOfflineDB() {
+  if (offlineDbPromise) return offlineDbPromise;
+  offlineDbPromise = new Promise((resolve,reject) => {
+    const req = indexedDB.open(OFFLINE_DB_NAME, OFFLINE_DB_VERSION);
+    req.onupgradeneeded = () => {
+      const db = req.result;
+      if (!db.objectStoreNames.contains('pending')) db.createObjectStore('pending',{keyPath:'queueId'});
+      if (!db.objectStoreNames.contains('drafts')) db.createObjectStore('drafts',{keyPath:'evaluationId'});
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error || new Error('Could not open local offline storage.'));
+  });
+  return offlineDbPromise;
+}
+async function dbPut(storeName, value) {
+  const db=await openOfflineDB();
+  return new Promise((resolve,reject)=>{const tx=db.transaction(storeName,'readwrite');tx.objectStore(storeName).put(value);tx.oncomplete=()=>resolve(true);tx.onerror=()=>reject(tx.error);});
+}
+async function dbGetAll(storeName) {
+  const db=await openOfflineDB();
+  return new Promise((resolve,reject)=>{const tx=db.transaction(storeName,'readonly');const req=tx.objectStore(storeName).getAll();req.onsuccess=()=>resolve(req.result||[]);req.onerror=()=>reject(req.error);});
+}
+async function dbDelete(storeName,key) {
+  const db=await openOfflineDB();
+  return new Promise((resolve,reject)=>{const tx=db.transaction(storeName,'readwrite');tx.objectStore(storeName).delete(key);tx.oncomplete=()=>resolve(true);tx.onerror=()=>reject(tx.error);});
+}
+function makeOfflineId(){return 'OFFLINE_'+Date.now()+'_'+Math.random().toString(36).slice(2,9);}
+async function queueEvaluationSave(sessionToken, formData) {
+  const data=JSON.parse(JSON.stringify(formData||{}));
+  if (!data.evaluationId) data.evaluationId=makeOfflineId();
+  const record={queueId:data.evaluationId,action:'saveEvaluation',args:[sessionToken,data],createdAt:Date.now(),userId:currentUser.userId||'',status:'pending'};
+  await dbPut('pending',record);
+  await dbPut('drafts',{evaluationId:data.evaluationId,data:data,updatedAt:Date.now(),status:'Pending sync'});
+  return data.evaluationId;
+}
+async function updateOfflineStatus(){
+  const bar=$('offlineBar'); if(!bar) return;
+  const online=navigator.onLine;
+  bar.classList.toggle('offline',!online);bar.classList.toggle('online',online);
+  $('connectionState').textContent=online?'Internet connected':'Offline mode';
+  try {const rows=await dbGetAll('pending');$('pendingCount').textContent=rows.length+' pending record(s)';}
+  catch(_){$('pendingCount').textContent='Local storage unavailable';}
+  $('syncNowBtn').disabled=!online;
+}
+async function renderQueuedDrafts(){
+  try {
+    const rows=await dbGetAll('drafts');
+    if(!rows.length) return;
+    const body=$('historyTable');
+    const pendingHtml=rows.map(r=>`<tr><td>${escapeValue(r.data.evaluationDate||'')}</td><td>${escapeValue(r.data.service||'')}</td><td>${escapeValue(currentUser?currentUser.fullName:'')}</td><td>Pending sync</td><td>Saved on this device</td></tr>`).join('');
+    if(body) body.innerHTML=pendingHtml;
+  } catch(err){console.warn(err);}
+}
+let syncingPending=false;
+async function syncPendingRecords(){
+  if(syncingPending || !navigator.onLine) return;
+  if(!token || !currentUser){showMessage('Sign in online to synchronize pending drafts. They remain safely stored on this device.',true);return;}
+  syncingPending=true;
+  try{
+    const records=(await dbGetAll('pending')).sort((a,b)=>a.createdAt-b.createdAt);
+    for(const rec of records){
+      const result=await api(rec.action,rec.args,undefined,true);
+      if(result===null || result===undefined) break;
+      await dbDelete('pending',rec.queueId);
+      await dbDelete('drafts',rec.queueId);
+    }
+    await updateOfflineStatus();
+    const left=await dbGetAll('pending');
+    if(!left.length){showMessage('All pending drafts have synchronized.',false);refreshHistory();}
+    else showMessage(left.length+' draft(s) still pending. Check your connection or sign in again.',true);
+  }catch(err){showMessage('Sync paused: '+(err.message||err),true);}
+  finally{syncingPending=false;}
+}
+window.addEventListener('online',()=>{updateOfflineStatus();if(token) syncPendingRecords();});
+window.addEventListener('offline',updateOfflineStatus);
+document.addEventListener('DOMContentLoaded',()=>{updateOfflineStatus();if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(e=>console.warn('PWA worker registration failed',e));});
+
 </script>
 
 </body>
